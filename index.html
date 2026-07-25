@@ -1,0 +1,2440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Policy Register — Insurance CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
+:root{
+  --ink:#14213D;
+  --ink-2:#1F2E4D;
+  --steel:#5C6B84;
+  --steel-light:#8B96A8;
+  --paper:#EEF1F5;
+  --paper-card:#FFFFFF;
+  --line:#E0E4EA;
+  --brass:#B98B3E;
+  --brass-dark:#93701E;
+  --brass-bg:#FBF3E3;
+  --good:#3C7A5A;
+  --good-bg:#E7F3ED;
+  --warn:#B4700F;
+  --warn-bg:#FBF0DA;
+  --bad:#B23A32;
+  --bad-bg:#FBEAE8;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(20,33,61,.05),0 6px 16px rgba(20,33,61,.06);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.font-display{font-family:'Fraunces',serif;}
+.mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;font-size:14px;}
+a{color:inherit;}
+::selection{background:var(--brass-bg);color:var(--brass-dark);}
+
+/* ---------- APP SHELL ---------- */
+#app{display:flex;min-height:100vh;}
+
+.sidebar{
+  width:230px;flex-shrink:0;background:var(--ink);color:#EAEDF4;
+  display:flex;flex-direction:column;padding:22px 16px;position:sticky;top:0;height:100vh;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:0 6px 22px 6px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:18px;}
+.brand svg{width:26px;height:26px;color:var(--brass);flex-shrink:0;}
+.brand-text{line-height:1.15;}
+.brand-text b{font-family:'Fraunces',serif;font-size:16.5px;font-weight:600;display:block;}
+.brand-text span{font-size:11px;color:#9AA6C0;letter-spacing:.04em;}
+
+.nav{display:flex;flex-direction:column;gap:2px;flex:1;}
+.nav-item{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;
+  color:#C3CBDE;text-decoration:none;font-size:13.5px;font-weight:500;background:none;border:none;text-align:left;width:100%;
+}
+.nav-item svg{width:17px;height:17px;flex-shrink:0;}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
+.nav-item.active{background:rgba(185,139,62,.16);color:#fff;}
+.nav-item.active svg{color:var(--brass);}
+.nav-badge{margin-left:auto;background:var(--bad);color:#fff;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:20px;}
+
+.sidebar-foot{padding-top:14px;border-top:1px solid rgba(255,255,255,.1);}
+.backend-pill{display:flex;align-items:center;gap:7px;font-size:11.5px;color:#9AA6C0;padding:6px 8px;}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot.on{background:#4FBE81;}
+.dot.off{background:#8B96A8;}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column;}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;padding:18px 32px;
+  background:var(--paper-card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;
+}
+.topbar h1{font-size:19px;margin:0;font-weight:600;}
+.topbar .sub{font-size:12.5px;color:var(--steel);margin-top:2px;}
+.content{padding:26px 32px 60px;flex:1;}
+
+.hamburger{display:none;background:none;border:none;padding:6px;color:var(--ink);}
+.hamburger svg{width:22px;height:22px;}
+
+/* ---------- BUTTONS ---------- */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:8px;border:1px solid transparent;font-size:13.5px;font-weight:600;transition:.12s;white-space:nowrap;}
+.btn svg{width:15px;height:15px;}
+.btn-primary{background:var(--ink);color:#fff;}
+.btn-primary:hover{background:var(--ink-2);}
+.btn-brass{background:var(--brass);color:#fff;}
+.btn-brass:hover{background:var(--brass-dark);}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line);}
+.btn-ghost:hover{background:var(--paper);}
+.btn-danger{background:transparent;color:var(--bad);border-color:#F0CFCB;}
+.btn-danger:hover{background:var(--bad-bg);}
+.btn-sm{padding:6px 10px;font-size:12.5px;}
+.btn-icon{padding:8px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ---------- CARDS / STATS ---------- */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--paper-card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px;box-shadow:var(--shadow);}
+.stat-card .label{font-size:12px;color:var(--steel);font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.stat-card .value{font-family:'Fraunces',serif;font-size:30px;font-weight:600;margin-top:6px;}
+.stat-card .value.bad{color:var(--bad);}
+.stat-card .value.warn{color:var(--warn);}
+.stat-card .value.good{color:var(--good);}
+.stat-card .foot{font-size:12px;color:var(--steel-light);margin-top:4px;}
+
+.card{background:var(--paper-card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);}
+.card-head h2{font-size:15.5px;margin:0;font-weight:600;}
+.card-body{padding:18px 20px;}
+
+/* ledger ruled-line texture for dashboard list */
+.ledger{background-image:repeating-linear-gradient(to bottom, transparent, transparent 47px, var(--line) 48px);}
+
+/* ---------- TABLE ---------- */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--steel);font-weight:700;padding:9px 14px;border-bottom:2px solid var(--line);white-space:nowrap;}
+td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle;}
+tbody tr:hover{background:#FAFBFC;}
+td.mono{color:var(--ink-2);}
+.cell-name{font-weight:600;}
+.cell-sub{font-size:12px;color:var(--steel);margin-top:1px;}
+.row-actions{display:flex;gap:4px;justify-content:flex-end;}
+.icon-btn{background:none;border:none;padding:6px;border-radius:6px;color:var(--steel);}
+.icon-btn:hover{background:var(--paper);color:var(--ink);}
+.icon-btn svg{width:15px;height:15px;display:block;}
+
+/* ---------- BADGES ---------- */
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.badge.bad{background:var(--bad-bg);color:var(--bad);}
+.badge.warn{background:var(--warn-bg);color:var(--warn);}
+.badge.good{background:var(--good-bg);color:var(--good);}
+.badge.neutral{background:#EDEFF3;color:var(--steel);}
+.badge.brass{background:var(--brass-bg);color:var(--brass-dark);}
+
+/* ---------- FORMS ---------- */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+.field.full{grid-column:1/-1;}
+.field label{font-size:12.5px;font-weight:600;color:var(--ink-2);}
+.field .hint{font-size:11px;color:var(--steel-light);font-weight:400;}
+.field input[type=text],.field input[type=email],.field input[type=tel],.field input[type=date],.field input[type=number],.field input[type=month],.field input[type=url],.field select,.field textarea{
+  padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);width:100%;
+}
+.field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--brass);outline-offset:0;border-color:var(--brass);}
+.field textarea{resize:vertical;min-height:90px;line-height:1.5;}
+.field-error{border-color:var(--bad) !important;}
+.error-text{font-size:11.5px;color:var(--bad);}
+.checkbox-row{display:flex;align-items:center;gap:8px;}
+.radio-card-row{display:flex;gap:10px;flex-wrap:wrap;}
+.radio-card{border:1.5px solid var(--line);border-radius:8px;padding:10px 14px;cursor:pointer;font-size:13px;font-weight:600;color:var(--steel);display:flex;align-items:center;gap:8px;}
+.radio-card.active{border-color:var(--brass);background:var(--brass-bg);color:var(--brass-dark);}
+
+/* filter bar */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px;}
+.filter-bar select,.filter-bar input{padding:8px 11px;border:1px solid var(--line);border-radius:7px;background:#fff;font-size:13px;}
+.search-box{position:relative;flex:1;min-width:200px;}
+.search-box svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--steel-light);}
+.search-box input{width:100%;padding-left:34px;}
+.chip-row{display:flex;gap:8px;flex-wrap:wrap;}
+.chip{padding:6px 13px;border-radius:20px;border:1px solid var(--line);font-size:12.5px;font-weight:600;color:var(--steel);background:#fff;}
+.chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+/* ---------- MODAL ---------- */
+.overlay{position:fixed;inset:0;background:rgba(20,25,40,.5);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;z-index:100;}
+.modal{background:#fff;border-radius:12px;max-width:640px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:pop .15s ease;}
+.modal.wide{max-width:760px;}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line);}
+.modal-head h3{margin:0;font-size:16.5px;font-weight:600;}
+.modal-body{padding:20px 22px;max-height:70vh;overflow-y:auto;}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--line);}
+.close-x{background:none;border:none;color:var(--steel);padding:4px;}
+.close-x svg{width:18px;height:18px;}
+
+/* ---------- EMPTY / BANNER ---------- */
+.empty{text-align:center;padding:50px 20px;color:var(--steel);}
+.empty svg{width:34px;height:34px;color:var(--steel-light);margin-bottom:10px;}
+.empty h3{margin:0 0 4px;font-size:15px;color:var(--ink);}
+.empty p{margin:0 0 16px;font-size:13px;}
+
+.banner{display:flex;align-items:center;gap:12px;background:var(--brass-bg);border:1px solid #EAD6A9;color:var(--brass-dark);padding:11px 18px;border-radius:9px;font-size:13px;margin-bottom:20px;}
+.banner button{margin-left:auto;background:none;border:none;color:var(--brass-dark);font-weight:700;font-size:12.5px;text-decoration:underline;}
+.banner.info{background:#E9EEF7;border-color:#CFDAEF;color:var(--ink-2);}
+
+/* toast */
+#toast-wrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:200;}
+.toast{background:var(--ink);color:#fff;padding:11px 16px;border-radius:8px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:9px;min-width:220px;animation:slidein .18s ease;}
+.toast svg{width:15px;height:15px;flex-shrink:0;}
+.toast.err{background:var(--bad);}
+.toast.ok{background:var(--good);}
+@keyframes slidein{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+.section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--steel);margin:26px 0 12px;}
+.section-title:first-child{margin-top:0;}
+.helptext{font-size:12.5px;color:var(--steel);line-height:1.6;}
+.settings-block{margin-bottom:26px;}
+.company-chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);padding:7px 8px 7px 14px;border-radius:20px;font-size:13px;font-weight:600;margin:0 8px 8px 0;}
+.company-chip button{background:none;border:none;color:var(--steel-light);padding:2px;border-radius:50%;}
+.company-chip button:hover{color:var(--bad);}
+.company-chip button svg{width:13px;height:13px;display:block;}
+
+.pagination{display:flex;justify-content:center;align-items:center;gap:10px;padding:14px;font-size:13px;color:var(--steel);}
+
+/* ---------- KANBAN (Leads) ---------- */
+.kanban-board{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;align-items:flex-start;}
+.kanban-col{flex:0 0 272px;background:var(--paper-card);border:1px solid var(--line);border-radius:var(--radius);display:flex;flex-direction:column;max-height:calc(100vh - 230px);box-shadow:var(--shadow);}
+.kanban-col-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);}
+.kanban-count{margin-left:auto;font-size:12px;color:var(--steel);font-weight:700;}
+.kanban-dropzone{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:90px;transition:background .12s;}
+.kanban-dropzone.drag-over{background:var(--brass-bg);}
+.kanban-empty{font-size:12px;color:var(--steel-light);text-align:center;padding:18px 0;}
+.kanban-card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:grab;box-shadow:0 1px 2px rgba(20,33,61,.04);}
+.kanban-card:active{cursor:grabbing;}
+.kanban-card.dragging{opacity:.35;}
+.kc-name{font-weight:600;font-size:13.5px;}
+.kc-sub{font-size:12px;color:var(--steel);margin-top:2px;}
+.kc-tag{display:inline-block;margin-top:6px;font-size:11px;background:var(--paper);color:var(--steel);padding:2px 8px;border-radius:12px;}
+.kc-premium{font-size:12px;color:var(--ink-2);margin-top:4px;font-weight:600;}
+.kc-assignee{font-size:11px;color:var(--brass-dark);margin-top:5px;font-weight:600;}
+.kc-actions{display:flex;justify-content:flex-end;gap:2px;margin-top:8px;border-top:1px solid var(--line);padding-top:6px;}
+.kanban-add-btn{margin:2px 10px 10px;justify-content:center;}
+
+@media(max-width:880px){
+  .sidebar{position:fixed;left:-240px;z-index:50;transition:.2s;box-shadow:0 0 0 2000px rgba(0,0,0,0);}
+  .sidebar.open{left:0;box-shadow:0 0 0 2000px rgba(0,0,0,.4);}
+  .hamburger{display:block;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .form-grid{grid-template-columns:1fr;}
+  .content{padding:18px 14px 50px;}
+  .topbar{padding:14px 16px;}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast-wrap"></div>
+
+<script>
+/* =========================================================================
+   CONSTANTS
+========================================================================= */
+const POLICY_TYPES = ["Health Insurance","Motor Insurance - Car","Motor Insurance - Two Wheeler","Term Life Insurance","Life Insurance - Endowment","Life Insurance - ULIP","Travel Insurance","Home Insurance","Personal Accident","Critical Illness","Business Insurance","Other"];
+const DEFAULT_COMPANIES = ["HDFC Ergo","Care Health Insurance","ICICI Lombard","Bajaj Allianz","Star Health & Allied Insurance","Tata AIG","New India Assurance","Life Insurance Corporation (LIC)","SBI General Insurance","Niva Bupa","Reliance General Insurance","Max Life Insurance","Go Digit General Insurance","Kotak Mahindra Life","PB (PolicyBazaar)"];
+const PAYMENT_FREQUENCIES = ["Annual","Half-Yearly","Quarterly","Monthly"];
+const POLICY_STATUSES = ["Active","Renewed","Lapsed","Cancelled"];
+const POLICY_PERIODS = ["1 Year","2 Years","3 Years"];
+function isMotorPolicyType(t){ return t==='Motor Insurance - Car' || t==='Motor Insurance - Two Wheeler'; }
+const POLICY_FIELDS = ["id","customer_name","email","mobile","policy_number","policy_type","company_name","issue_date","renewal_date","premium_amount","sum_insured","payment_frequency","status","notes","last_reminder_sent","created_at"];
+
+const DEFAULT_LEAD_STATUSES = [
+  {label:'New', color:'neutral', triggers_conversion:false, sort_order:1},
+  {label:'Contacted', color:'brass', triggers_conversion:false, sort_order:2},
+  {label:'Quoted', color:'warn', triggers_conversion:false, sort_order:3},
+  {label:'Negotiation', color:'warn', triggers_conversion:false, sort_order:4},
+  {label:'Closed Won', color:'good', triggers_conversion:true, sort_order:5},
+  {label:'Closed Lost', color:'bad', triggers_conversion:false, sort_order:6},
+];
+
+const DEFAULT_TEMPLATE = {
+  subject: "Reminder: Your {{policy_type}} policy ({{policy_number}}) is due for renewal",
+  body: `Dear {{customer_name}},
+
+This is a friendly reminder that your {{policy_type}} policy with {{company_name}} (Policy No. {{policy_number}}) is due for renewal on {{renewal_date}}.
+
+To ensure your coverage continues without a break, please get in touch so we can complete the renewal before the due date.
+
+Policy details:
+- Policy Number: {{policy_number}}
+- Insurer: {{company_name}}
+- Renewal Date: {{renewal_date}}
+
+Feel free to reach out if you have any questions.
+
+Best regards,
+Your Insurance Advisor`
+};
+
+const ICONS = {
+  grid:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="2.5" width="6" height="6" rx="1.2"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.2"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.2"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.2"/></svg>',
+  bell:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 8a5 5 0 0 1 10 0c0 4 1.5 5 1.5 5h-13S5 12 5 8Z"/><path d="M8 15.5a2 2 0 0 0 4 0"/></svg>',
+  list:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 5h9M7 10h9M7 15h9"/><circle cx="3.3" cy="5" r=".9" fill="currentColor" stroke="none"/><circle cx="3.3" cy="10" r=".9" fill="currentColor" stroke="none"/><circle cx="3.3" cy="15" r=".9" fill="currentColor" stroke="none"/></svg>',
+  building:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="2.5" width="8" height="15" rx="1"/><path d="M8 6h.01M8 9h.01M8 12h.01M12 8h4v9.5H12"/></svg>',
+  gear:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.8v1.6M10 15.6v1.6M17.2 10h-1.6M4.4 10H2.8M15 5l-1.1 1.1M6.1 13.9 5 15M15 15l-1.1-1.1M6.1 6.1 5 5"/></svg>',
+  plus:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 4v12M4 10h12"/></svg>',
+  search:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m17 17-4-4"/></svg>',
+  edit:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12.5 3.5 16 7l-9 9H3.5v-3.5l9-9Z"/></svg>',
+  trash:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5.5h12M8 5.5V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M6 5.5 6.8 16a1 1 0 0 0 1 .9h4.4a1 1 0 0 0 1-.9l.8-10.5"/></svg>',
+  mail:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="4.5" width="15" height="11" rx="1.4"/><path d="m3 5.5 7 5.5 7-5.5"/></svg>',
+  check:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 10.5 8 14.5 16 5.5"/></svg>',
+  x:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5l10 10M15 5 5 15"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3Z"/></svg>',
+  download:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3v10m0 0-4-4m4 4 4-4M4 16.5h12"/></svg>',
+  refresh:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M16 10a6 6 0 1 1-2-4.5M16 3v4h-4"/></svg>',
+  menu:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 5.5h14M3 10h14M3 14.5h14"/></svg>',
+  warn:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 2.5 18 17H2L10 2.5Z"/><path d="M10 8v3.5M10 14h.01"/></svg>',
+  funnel:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h14l-5.5 6.5v5L8.5 17v-6.5L3 4Z"/></svg>',
+};
+function icon(name){return ICONS[name]||'';}
+
+/* =========================================================================
+   DEPLOY-TIME CONFIG
+   If you're hosting ONE shared copy of this app for your team, fill these in
+   before deploying so every advisor lands straight on the sign-in screen
+   instead of each having to type in Supabase details themselves. This is
+   NOT secret — the anon key is meant to be used from the browser; access
+   control is enforced by Supabase Auth + Row Level Security, not by hiding
+   this value. Leave a field blank to let people configure it from Settings
+   instead.
+========================================================================= */
+const PRESET_CONFIG = {
+  backend: '',       // 'supabase' | 'sheets' | 'local'  (leave '' to not override)
+  supabaseUrl: '',   // e.g. 'https://xxxxx.supabase.co'
+  supabaseKey: '',   // the anon public key, not the service_role key
+  appsScriptUrl: '',
+};
+
+/* =========================================================================
+   STATE
+========================================================================= */
+const state = {
+  view:'dashboard',
+  policies:[],
+  companies:[],
+  leads:[],
+  leadStatusDefs:[],
+  editingLead:null,
+  loading:false,
+  sidebarOpen:false,
+  settings:loadSettings(),
+  filters:{
+    renewal:'this_month', renewalMonth:'', renewalFrom:'', renewalTo:'', renewalSearch:'',
+    polSearch:'', polCompany:'', polType:'', polStatus:'', polSort:'name',
+    leadSearch:'', leadAssignee:''
+  },
+  selectedRenewalIds:new Set(),
+  editingPolicy:null, // policy object or null, or {} for new
+  modal:null, // {type:'policy'|'reminder'|'bulkReminder'|'confirm'|'renew'|'lead', ...}
+  convertingLeadId:null, convertingLeadNewStatus:null,
+  session:loadSession(), // Supabase auth session, null if logged out / not applicable
+  authMode:'signin', // 'signin' | 'signup'
+  authError:'', authBusy:false, authNotice:'',
+  sheetsSession:loadSheetsSession(), // Google Sheets backend login session
+  sheetsAuthMode:'signin', // 'signin' | 'bootstrap'
+  sheetsAuthError:'', sheetsAuthBusy:false, sheetsAuthNotice:'',
+  sheetsUsers:[], // cached advisor list, populated for admins only
+};
+
+function loadSettings(){
+  try{
+    const raw = localStorage.getItem('crm_settings_v1');
+    if(raw) return Object.assign(defaultSettings(), JSON.parse(raw));
+  }catch(e){}
+  return defaultSettings();
+}
+function defaultSettings(){
+  return {
+    backend: PRESET_CONFIG.backend || 'local',
+    supabaseUrl: PRESET_CONFIG.supabaseUrl || '',
+    supabaseKey: PRESET_CONFIG.supabaseKey || '',
+    appsScriptUrl: PRESET_CONFIG.appsScriptUrl || '',
+    emailjsServiceId:'', emailjsTemplateId:'', emailjsPublicKey:'',
+    template: Object.assign({}, DEFAULT_TEMPLATE),
+    bannerDismissed:false,
+  };
+}
+function saveSettings(){
+  localStorage.setItem('crm_settings_v1', JSON.stringify(state.settings));
+}
+function loadSession(){
+  try{
+    const raw = localStorage.getItem('crm_session_v1');
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
+}
+function saveSession(session){
+  state.session = session;
+  if(session) localStorage.setItem('crm_session_v1', JSON.stringify(session));
+  else localStorage.removeItem('crm_session_v1');
+}
+function loadSheetsSession(){
+  try{
+    const raw = localStorage.getItem('crm_sheets_session_v1');
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
+}
+function saveSheetsSession(session){
+  state.sheetsSession = session;
+  if(session) localStorage.setItem('crm_sheets_session_v1', JSON.stringify(session));
+  else localStorage.removeItem('crm_sheets_session_v1');
+}
+
+/* =========================================================================
+   UTILITIES
+========================================================================= */
+function uid(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'id-'+Math.random().toString(36).slice(2)+Date.now();
+}
+function escapeHtml(str){
+  if(str===null||str===undefined) return '';
+  return String(str).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function normalizeDate(v){
+  if(!v) return '';
+  const s = String(v);
+  const m = s.match(/^\d{4}-\d{2}-\d{2}/);
+  if(m) return m[0];
+  // try parse Date object stringified
+  const d = new Date(s);
+  if(!isNaN(d)) return d.toISOString().slice(0,10);
+  return s;
+}
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function formatDateDisplay(v){
+  const d = normalizeDate(v);
+  if(!d) return '—';
+  const dt = new Date(d+'T00:00:00');
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+}
+function monthYearKey(v){
+  const d = normalizeDate(v);
+  return d ? d.slice(0,7) : '';
+}
+function monthYearLabel(key){
+  if(!key) return '';
+  const [y,m] = key.split('-');
+  const dt = new Date(parseInt(y), parseInt(m)-1, 1);
+  return dt.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+}
+function daysUntil(v){
+  const d = normalizeDate(v);
+  if(!d) return null;
+  const target = new Date(d+'T00:00:00');
+  const today = new Date(todayStr()+'T00:00:00');
+  return Math.round((target-today)/86400000);
+}
+function yearsFromPeriod(period){
+  if(period==='2 Years') return 2;
+  if(period==='3 Years') return 3;
+  return 1;
+}
+// Renewal date = issue date + N years, minus 1 day (e.g. issued 25 Jul 2026,
+// 1-year term → due 24 Jul 2027) — standard insurance coverage-period convention.
+function computeRenewalDate(issueDateStr, years){
+  const d0 = normalizeDate(issueDateStr);
+  if(!d0) return '';
+  const d = new Date(d0+'T00:00:00');
+  if(isNaN(d)) return '';
+  d.setFullYear(d.getFullYear()+years);
+  d.setDate(d.getDate()-1);
+  return d.toISOString().slice(0,10);
+}
+function currency(n){
+  if(n===null||n===undefined||n==='') return '—';
+  const num = parseFloat(n);
+  if(isNaN(num)) return '—';
+  return '₹'+num.toLocaleString('en-IN',{maximumFractionDigits:0});
+}
+function urgencyBadge(dl){
+  if(dl===null) return '<span class="badge neutral">No date</span>';
+  if(dl<0) return `<span class="badge bad">${icon('warn')} Overdue ${Math.abs(dl)}d</span>`;
+  if(dl===0) return `<span class="badge bad">Due today</span>`;
+  if(dl<=30) return `<span class="badge warn">Due in ${dl}d</span>`;
+  return `<span class="badge good">Due in ${dl}d</span>`;
+}
+function statusBadge(s){
+  const cls = s==='Active'?'good':s==='Renewed'?'brass':s==='Lapsed'?'bad':'neutral';
+  return `<span class="badge ${cls}">${escapeHtml(s||'Active')}</span>`;
+}
+function resolveTemplate(str, p){
+  return (str||'').replace(/\{\{(\w+)\}\}/g, (_,key)=>{
+    if(key==='renewal_date') return formatDateDisplay(p.renewal_date);
+    if(key==='issue_date') return formatDateDisplay(p.issue_date);
+    return p[key]!==undefined && p[key]!==null ? p[key] : '';
+  });
+}
+function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
+
+function showToast(msg, type){
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast'+(type==='err'?' err':type==='ok'?' ok':'');
+  el.innerHTML = (type==='ok'?icon('check'):type==='err'?icon('x'):'')+`<span>${escapeHtml(msg)}</span>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='.25s'; setTimeout(()=>el.remove(),250); }, 3200);
+}
+
+/* =========================================================================
+   PROVIDERS (data backend abstraction)
+========================================================================= */
+const LocalProvider = {
+  key_p:'crm_policies_v1', key_c:'crm_companies_v1', key_l:'crm_leads_v1', key_ls:'crm_lead_statuses_v1',
+  _read(key){ try{ return JSON.parse(localStorage.getItem(key))||[]; }catch(e){ return []; } },
+  _write(key, val){ localStorage.setItem(key, JSON.stringify(val)); },
+  async testConnection(){ return {ok:true, message:'Local browser storage ready.'}; },
+  async listPolicies(){ return this._read(this.key_p); },
+  async createPolicy(payload){
+    const list = this._read(this.key_p);
+    const record = Object.assign({id:uid(), created_at:new Date().toISOString(), status:'Active'}, payload);
+    list.push(record); this._write(this.key_p, list); return record;
+  },
+  async updatePolicy(id, payload){
+    const list = this._read(this.key_p);
+    const idx = list.findIndex(p=>p.id===id);
+    if(idx===-1) throw new Error('Policy not found');
+    list[idx] = Object.assign({}, list[idx], payload);
+    this._write(this.key_p, list); return list[idx];
+  },
+  async deletePolicy(id){
+    let list = this._read(this.key_p);
+    list = list.filter(p=>p.id!==id);
+    this._write(this.key_p, list); return true;
+  },
+  async listCompanies(){ return this._read(this.key_c); },
+  async addCompany(name){
+    const list = this._read(this.key_c);
+    const record = {id:uid(), name};
+    list.push(record); this._write(this.key_c, list); return record;
+  },
+  async deleteCompany(id){
+    let list = this._read(this.key_c);
+    list = list.filter(c=>c.id!==id);
+    this._write(this.key_c, list); return true;
+  },
+  async listLeads(){ return this._read(this.key_l); },
+  async createLead(payload){
+    const list = this._read(this.key_l);
+    const record = Object.assign({id:uid(), created_at:new Date().toISOString(), closed_policy_id:''}, payload);
+    list.push(record); this._write(this.key_l, list); return record;
+  },
+  async updateLead(id, payload){
+    const list = this._read(this.key_l);
+    const idx = list.findIndex(l=>l.id===id);
+    if(idx===-1) throw new Error('Lead not found');
+    list[idx] = Object.assign({}, list[idx], payload);
+    this._write(this.key_l, list); return list[idx];
+  },
+  async deleteLead(id){
+    let list = this._read(this.key_l);
+    list = list.filter(l=>l.id!==id);
+    this._write(this.key_l, list); return true;
+  },
+  async listLeadStatusDefs(){ return this._read(this.key_ls); },
+  async addLeadStatusDef(payload){
+    const list = this._read(this.key_ls);
+    const record = Object.assign({id:uid()}, payload);
+    list.push(record); this._write(this.key_ls, list); return record;
+  },
+  async updateLeadStatusDef(id, payload){
+    const list = this._read(this.key_ls);
+    const idx = list.findIndex(s=>s.id===id);
+    if(idx===-1) throw new Error('Status not found');
+    list[idx] = Object.assign({}, list[idx], payload);
+    this._write(this.key_ls, list); return list[idx];
+  },
+  async deleteLeadStatusDef(id){
+    let list = this._read(this.key_ls);
+    list = list.filter(s=>s.id!==id);
+    this._write(this.key_ls, list); return true;
+  },
+};
+
+const SupabaseProvider = {
+  base(){ return state.settings.supabaseUrl.replace(/\/$/,''); },
+  async headers(){
+    await ensureFreshSession();
+    const anon = state.settings.supabaseKey;
+    const userToken = state.session ? state.session.access_token : null;
+    return {
+      'apikey': anon,
+      'Authorization': 'Bearer ' + (userToken || anon), // user token drives RLS once logged in
+      'Content-Type':'application/json', 'Prefer':'return=representation'
+    };
+  },
+  async testConnection(){
+    // Checks the project URL + anon key are valid, independent of login state.
+    try{
+      const r = await fetch(`${this.base()}/auth/v1/settings`, {headers:{apikey: state.settings.supabaseKey}});
+      if(!r.ok) return {ok:false, message:'Connection failed ('+r.status+'). Check your Project URL and anon key.'};
+      return {ok:true, message:'Project reachable. Sign in below to load your policies.'};
+    }catch(e){ return {ok:false, message:'Could not reach Supabase: '+e.message}; }
+  },
+  async listPolicies(){
+    const r = await fetch(`${this.base()}/rest/v1/policies?select=*&order=renewal_date.asc`, {headers:await this.headers()});
+    if(!r.ok) throw new Error('Failed to load policies ('+r.status+')');
+    return await r.json();
+  },
+  async createPolicy(payload){
+    const r = await fetch(`${this.base()}/rest/v1/policies`, {method:'POST', headers:await this.headers(), body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error('Failed to create policy ('+r.status+')');
+    const data = await r.json(); return data[0];
+  },
+  async updatePolicy(id, payload){
+    const r = await fetch(`${this.base()}/rest/v1/policies?id=eq.${id}`, {method:'PATCH', headers:await this.headers(), body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error('Failed to update policy ('+r.status+')');
+    const data = await r.json(); return data[0];
+  },
+  async deletePolicy(id){
+    const r = await fetch(`${this.base()}/rest/v1/policies?id=eq.${id}`, {method:'DELETE', headers:await this.headers()});
+    if(!r.ok) throw new Error('Failed to delete policy ('+r.status+')');
+    return true;
+  },
+  async listCompanies(){
+    const r = await fetch(`${this.base()}/rest/v1/companies?select=*&order=name.asc`, {headers:await this.headers()});
+    if(!r.ok) throw new Error('Failed to load companies ('+r.status+')');
+    return await r.json();
+  },
+  async addCompany(name){
+    const r = await fetch(`${this.base()}/rest/v1/companies`, {method:'POST', headers:await this.headers(), body:JSON.stringify({name})});
+    if(!r.ok) throw new Error('Failed to add company ('+r.status+')');
+    const data = await r.json(); return data[0];
+  },
+  async deleteCompany(id){
+    const r = await fetch(`${this.base()}/rest/v1/companies?id=eq.${id}`, {method:'DELETE', headers:await this.headers()});
+    if(!r.ok) throw new Error('Failed to delete company ('+r.status+')');
+    return true;
+  },
+  async listLeads(){
+    const r = await fetch(`${this.base()}/rest/v1/leads?select=*&order=created_at.desc`, {headers:await this.headers()});
+    if(!r.ok) throw new Error('Failed to load leads ('+r.status+')');
+    return await r.json();
+  },
+  async createLead(payload){
+    const r = await fetch(`${this.base()}/rest/v1/leads`, {method:'POST', headers:await this.headers(), body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error('Failed to create lead ('+r.status+')');
+    const data = await r.json(); return data[0];
+  },
+  async updateLead(id, payload){
+    const r = await fetch(`${this.base()}/rest/v1/leads?id=eq.${id}`, {method:'PATCH', headers:await this.headers(), body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error('Failed to update lead ('+r.status+')');
+    const data = await r.json(); return data[0];
+  },
+  async deleteLead(id){
+    const r = await fetch(`${this.base()}/rest/v1/leads?id=eq.${id}`, {method:'DELETE', headers:await this.headers()});
+    if(!r.ok) throw new Error('Failed to delete lead ('+r.status+')');
+    return true;
+  },
+  async listLeadStatusDefs(){
+    const r = await fetch(`${this.base()}/rest/v1/lead_statuses?select=*&order=sort_order.asc`, {headers:await this.headers()});
+    if(!r.ok) throw new Error('Failed to load lead statuses ('+r.status+')');
+    return await r.json();
+  },
+  async addLeadStatusDef(payload){
+    const r = await fetch(`${this.base()}/rest/v1/lead_statuses`, {method:'POST', headers:await this.headers(), body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error('Failed to add status ('+r.status+')');
+    const data = await r.json(); return data[0];
+  },
+  async updateLeadStatusDef(id, payload){
+    const r = await fetch(`${this.base()}/rest/v1/lead_statuses?id=eq.${id}`, {method:'PATCH', headers:await this.headers(), body:JSON.stringify(payload)});
+    if(!r.ok) throw new Error('Failed to update status ('+r.status+')');
+    const data = await r.json(); return data[0];
+  },
+  async deleteLeadStatusDef(id){
+    const r = await fetch(`${this.base()}/rest/v1/lead_statuses?id=eq.${id}`, {method:'DELETE', headers:await this.headers()});
+    if(!r.ok) throw new Error('Failed to delete status ('+r.status+')');
+    return true;
+  },
+};
+
+/* ---------------- Supabase Auth (email + password) ---------------- */
+function supaBase(){ return state.settings.supabaseUrl.replace(/\/$/,''); }
+async function authSignUp(email, password){
+  const r = await fetch(`${supaBase()}/auth/v1/signup`, {
+    method:'POST', headers:{apikey:state.settings.supabaseKey, 'Content-Type':'application/json'},
+    body: JSON.stringify({email, password})
+  });
+  const data = await r.json();
+  if(!r.ok) throw new Error(data.error_description || data.msg || data.error || 'Sign up failed');
+  if(data.access_token){
+    saveSession(sessionFromAuthResponse(data));
+    return {loggedIn:true};
+  }
+  return {loggedIn:false}; // email confirmation required before sign in
+}
+async function authSignIn(email, password){
+  const r = await fetch(`${supaBase()}/auth/v1/token?grant_type=password`, {
+    method:'POST', headers:{apikey:state.settings.supabaseKey, 'Content-Type':'application/json'},
+    body: JSON.stringify({email, password})
+  });
+  const data = await r.json();
+  if(!r.ok) throw new Error(data.error_description || data.msg || data.error || 'Sign in failed');
+  saveSession(sessionFromAuthResponse(data));
+}
+async function authSignOut(){
+  try{
+    if(state.session){
+      await fetch(`${supaBase()}/auth/v1/logout`, {method:'POST', headers:{apikey:state.settings.supabaseKey, 'Authorization':'Bearer '+state.session.access_token}});
+    }
+  }catch(e){}
+  saveSession(null);
+  state.policies = []; state.companies = [];
+}
+function sessionFromAuthResponse(data){
+  return {
+    access_token: data.access_token, refresh_token: data.refresh_token,
+    expires_at: Date.now() + (data.expires_in||3600)*1000,
+    user: {id: data.user.id, email: data.user.email}
+  };
+}
+async function ensureFreshSession(){
+  if(!state.session) return;
+  if(Date.now() < state.session.expires_at - 60000) return; // still valid
+  try{
+    const r = await fetch(`${supaBase()}/auth/v1/token?grant_type=refresh_token`, {
+      method:'POST', headers:{apikey:state.settings.supabaseKey, 'Content-Type':'application/json'},
+      body: JSON.stringify({refresh_token: state.session.refresh_token})
+    });
+    const data = await r.json();
+    if(!r.ok) throw new Error('refresh failed');
+    saveSession(sessionFromAuthResponse(data));
+  }catch(e){
+    saveSession(null); // session expired/invalid — back to login screen
+  }
+}
+
+const SheetsProvider = {
+  url(){ return state.settings.appsScriptUrl; },
+  async call(action, payload){
+    return await sheetsRawCall(action, state.sheetsSession ? state.sheetsSession.token : null, payload);
+  },
+  async testConnection(){
+    try{
+      const data = await this.call('ping', {});
+      return {ok:true, message: data && data.message ? data.message : 'Connected to Google Sheets.'};
+    }catch(e){ return {ok:false, message:'Could not reach Apps Script: '+e.message}; }
+  },
+  async listPolicies(){ return await this.call('listPolicies', {}); },
+  async createPolicy(payload){ return await this.call('createPolicy', payload); },
+  async updatePolicy(id, payload){ return await this.call('updatePolicy', Object.assign({id}, payload)); },
+  async deletePolicy(id){ await this.call('deletePolicy', {id}); return true; },
+  async listCompanies(){ return await this.call('listCompanies', {}); },
+  async addCompany(name){ return await this.call('addCompany', {name}); },
+  async deleteCompany(id){ await this.call('deleteCompany', {id}); return true; },
+  async sendEmail(to, subject, body){ return await this.call('sendEmail', {to, subject, body}); },
+  async listLeads(){ return await this.call('listLeads', {}); },
+  async createLead(payload){ return await this.call('createLead', payload); },
+  async updateLead(id, payload){ return await this.call('updateLead', Object.assign({id}, payload)); },
+  async deleteLead(id){ await this.call('deleteLead', {id}); return true; },
+  async listLeadStatusDefs(){ return await this.call('listLeadStatusDefs', {}); },
+  async addLeadStatusDef(payload){ return await this.call('addLeadStatusDef', payload); },
+  async updateLeadStatusDef(id, payload){ return await this.call('updateLeadStatusDef', Object.assign({id}, payload)); },
+  async deleteLeadStatusDef(id){ await this.call('deleteLeadStatusDef', {id}); return true; },
+  async createBackupNow(){ return await this.call('createBackupNow', {}); },
+};
+
+/* ---------------- Google Sheets Auth (username + password, admin-managed) ---------------- */
+async function sheetsRawCall(action, token, payload){
+  const r = await fetch(state.settings.appsScriptUrl, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({action, token, payload})
+  });
+  const json = await r.json();
+  if(!json.ok) throw new Error(json.error||'Request failed');
+  return json.data;
+}
+async function sheetsLogin(username, password){
+  const data = await sheetsRawCall('login', null, {username, password});
+  saveSheetsSession(data);
+}
+async function sheetsBootstrapAdmin(username, password, display_name){
+  const data = await sheetsRawCall('bootstrapAdmin', null, {username, password, display_name});
+  saveSheetsSession(data);
+}
+async function sheetsLogout(){
+  try{ if(state.sheetsSession) await sheetsRawCall('logout', state.sheetsSession.token, {}); }catch(e){}
+  saveSheetsSession(null);
+  state.policies = []; state.companies = []; state.sheetsUsers = [];
+}
+
+function getProvider(){
+  if(state.settings.backend==='supabase') return SupabaseProvider;
+  if(state.settings.backend==='sheets') return SheetsProvider;
+  return LocalProvider;
+}
+
+async function sendReminderEmail(policy, subject, body){
+  const backend = state.settings.backend;
+  if(backend==='sheets'){
+    await SheetsProvider.sendEmail(policy.email, subject, body);
+    return true;
+  }
+  if(backend==='supabase'){
+    const s = state.settings;
+    if(!s.emailjsServiceId||!s.emailjsTemplateId||!s.emailjsPublicKey){
+      throw new Error('EmailJS is not configured yet. Add your Service ID, Template ID and Public Key in Settings.');
+    }
+    if(!window.emailjs) throw new Error('EmailJS library failed to load.');
+    await emailjs.send(s.emailjsServiceId, s.emailjsTemplateId, {
+      to_email: policy.email, to_name: policy.customer_name,
+      subject: subject, message: body,
+      policy_number: policy.policy_number, company_name: policy.company_name,
+      renewal_date: formatDateDisplay(policy.renewal_date),
+    }, s.emailjsPublicKey);
+    return true;
+  }
+  // local demo mode — simulate
+  await new Promise(res=>setTimeout(res, 500));
+  return true;
+}
+
+/* =========================================================================
+   DATA LOADING
+========================================================================= */
+async function loadAll(){
+  if(state.settings.backend==='supabase' && !state.session){
+    state.policies=[]; state.companies=[]; state.leads=[]; state.leadStatusDefs=[]; render(); return; // wait for login
+  }
+  if(state.settings.backend==='sheets' && !state.sheetsSession){
+    state.policies=[]; state.companies=[]; state.leads=[]; state.leadStatusDefs=[]; render(); return; // wait for login
+  }
+  state.loading = true; render();
+  const provider = getProvider();
+  const errors = [];
+
+  try{ state.policies = ((await provider.listPolicies())||[]).map(normalizePolicy); }
+  catch(e){ errors.push('policies ('+e.message+')'); }
+
+  try{
+    state.companies = (await provider.listCompanies())||[];
+    if(state.companies.length===0 && state.settings.backend!=='sheets'){
+      for(const name of DEFAULT_COMPANIES){
+        try{ await provider.addCompany(name); }catch(e){}
+      }
+      state.companies = await provider.listCompanies();
+    }
+  }catch(e){ errors.push('companies ('+e.message+')'); }
+
+  try{
+    state.leadStatusDefs = (await provider.listLeadStatusDefs())||[];
+    if(state.leadStatusDefs.length===0 && state.settings.backend!=='sheets'){
+      for(const s of DEFAULT_LEAD_STATUSES){
+        try{ await provider.addLeadStatusDef(s); }catch(e){}
+      }
+      state.leadStatusDefs = await provider.listLeadStatusDefs();
+    }
+  }catch(e){ errors.push('lead statuses ('+e.message+')'); }
+
+  try{ state.leads = (await provider.listLeads())||[]; }
+  catch(e){ errors.push('leads ('+e.message+')'); }
+
+  if(state.settings.backend==='sheets' && state.sheetsSession && state.sheetsSession.role==='admin'){
+    try{ state.sheetsUsers = await SheetsProvider.call('adminListUsers', {}); }catch(e){ state.sheetsUsers=[]; }
+  }
+
+  if(errors.length>0){
+    const msg = 'Could not load: '+errors.join(', ');
+    const looksLikeOldDeployment = errors.some(e=>e.includes('Unknown action'));
+    showToast(looksLikeOldDeployment
+      ? 'Some data failed to load — your Apps Script deployment may need updating (Deploy > Manage deployments > New version).'
+      : msg, 'err');
+  }
+  state.loading = false; render();
+}
+function normalizePolicy(p){
+  const np = Object.assign({}, p);
+  np.issue_date = normalizeDate(np.issue_date);
+  np.renewal_date = normalizeDate(np.renewal_date);
+  np.last_reminder_sent = np.last_reminder_sent ? normalizeDate(np.last_reminder_sent) : '';
+  np.status = np.status || 'Active';
+  return np;
+}
+
+/* =========================================================================
+   RENDER: SHELL
+========================================================================= */
+function render(){
+  const app = document.getElementById('app');
+  const needsSupabaseAuth = state.settings.backend==='supabase' && !state.session && state.view!=='settings';
+  const needsSheetsAuth = state.settings.backend==='sheets' && !state.sheetsSession && state.view!=='settings';
+  if(needsSupabaseAuth){ app.innerHTML = renderAuthScreen(); wireAuthEvents(); return; }
+  if(needsSheetsAuth){ app.innerHTML = renderSheetsAuthScreen(); wireSheetsAuthEvents(); return; }
+  const renewalsDueCount = getRenewalsDueSoonCount();
+  app.innerHTML = `
+    <div class="sidebar ${state.sidebarOpen?'open':''}">
+      <div class="brand">
+        ${icon('shield')}
+        <div class="brand-text"><b>Policy Register</b><span>Insurance CRM</span></div>
+      </div>
+      <nav class="nav">
+        ${navItem('dashboard','grid','Dashboard')}
+        ${navItem('leads','funnel','Leads')}
+        ${navItem('renewals','bell','Renewals', renewalsDueCount)}
+        ${navItem('policies','list','All Policies')}
+        ${navItem('companies','building','Companies')}
+        ${navItem('settings','gear','Settings')}
+      </nav>
+      <div class="sidebar-foot">
+        <div class="backend-pill"><span class="dot ${state.settings.backend==='local'?'off':'on'}"></span>
+          ${state.settings.backend==='local'?'Local demo mode':state.settings.backend==='supabase'?'Supabase connected':'Google Sheets connected'}
+        </div>
+        ${state.settings.backend==='supabase' && state.session ? `
+        <div style="padding:8px 8px 0;">
+          <div style="font-size:11.5px;color:#9AA6C0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(state.session.user.email)}">${escapeHtml(state.session.user.email)}</div>
+          <button id="btn-logout" style="width:100%;justify-content:center;margin-top:7px;background:transparent;color:#C3CBDE;border:1px solid rgba(255,255,255,.16);padding:7px;border-radius:7px;font-size:12.5px;font-weight:600;">Log out</button>
+        </div>`:''}
+        ${state.settings.backend==='sheets' && state.sheetsSession ? `
+        <div style="padding:8px 8px 0;">
+          <div style="font-size:11.5px;color:#9AA6C0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(state.sheetsSession.display_name)}">${escapeHtml(state.sheetsSession.display_name)}${state.sheetsSession.role==='admin'?' · Admin':''}</div>
+          <button id="btn-sheets-logout" style="width:100%;justify-content:center;margin-top:7px;background:transparent;color:#C3CBDE;border:1px solid rgba(255,255,255,.16);padding:7px;border-radius:7px;font-size:12.5px;font-weight:600;">Log out</button>
+        </div>`:''}
+      </div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="hamburger" id="hamburger">${icon('menu')}</button>
+          <div>
+            <h1>${viewTitle()}</h1>
+            <div class="sub">${viewSubtitle()}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          ${state.view==='policies'?`<button class="btn btn-brass" id="btn-add-policy">${icon('plus')} Add Policy</button>`:''}
+          ${state.view==='leads'?`<button class="btn btn-brass" id="btn-add-lead">${icon('plus')} Add Lead</button>`:''}
+        </div>
+      </div>
+      <div class="content" id="content"></div>
+    </div>
+  `;
+  document.getElementById('hamburger').onclick = ()=>{ state.sidebarOpen=!state.sidebarOpen; render(); };
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    el.onclick = ()=>{ state.view = el.dataset.view; state.sidebarOpen=false; render(); };
+  });
+  const addBtn = document.getElementById('btn-add-policy');
+  if(addBtn) addBtn.onclick = ()=> openPolicyModal(null);
+  const addLeadTopBtn = document.getElementById('btn-add-lead');
+  if(addLeadTopBtn) addLeadTopBtn.onclick = ()=> openLeadModal(null, (getLeadStatuses()[0]||{}).id);
+  const logoutBtn = document.getElementById('btn-logout');
+  if(logoutBtn) logoutBtn.onclick = async ()=>{ await authSignOut(); render(); };
+  const sheetsLogoutBtn = document.getElementById('btn-sheets-logout');
+  if(sheetsLogoutBtn) sheetsLogoutBtn.onclick = async ()=>{ await sheetsLogout(); render(); };
+
+  renderContent();
+  renderModal();
+}
+function navItem(view, iconName, label, badge){
+  return `<button class="nav-item ${state.view===view?'active':''}" data-view="${view}">${icon(iconName)}<span>${label}</span>${badge?`<span class="nav-badge">${badge}</span>`:''}</button>`;
+}
+function viewTitle(){
+  return {dashboard:'Dashboard', leads:'Leads', renewals:'Renewals', policies:'All Policies', companies:'Insurance Companies', settings:'Settings'}[state.view];
+}
+function viewSubtitle(){
+  const d = new Date().toLocaleDateString('en-IN',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  return {
+    dashboard: d,
+    leads: `${state.leads.length} lead${state.leads.length===1?'':'s'} in the pipeline`,
+    renewals: 'Track and remind customers before their policy lapses',
+    policies: `${state.policies.length} polic${state.policies.length===1?'y':'ies'} on record`,
+    companies: 'Manage the insurers you work with',
+    settings: 'Connect a backend and customize your reminder email',
+  }[state.view];
+}
+function getRenewalsDueSoonCount(){
+  return state.policies.filter(p=>{
+    if(p.status!=='Active') return false;
+    const dl = daysUntil(p.renewal_date);
+    return dl!==null && dl<=30;
+  }).length;
+}
+
+function renderContent(){
+  const el = document.getElementById('content');
+  // Preserve focus & cursor position across re-render — otherwise every
+  // keystroke in a debounced search box loses focus when the content div
+  // is replaced, making it look like typing "stops working".
+  const active = document.activeElement;
+  const activeId = active && active.id;
+  const selStart = active && typeof active.selectionStart==='number' ? active.selectionStart : null;
+  const selEnd = active && typeof active.selectionEnd==='number' ? active.selectionEnd : null;
+
+  if(state.loading){ el.innerHTML = `<div class="empty">Loading…</div>`; return; }
+  if(state.view==='dashboard') el.innerHTML = renderDashboard();
+  else if(state.view==='renewals') el.innerHTML = renderRenewals();
+  else if(state.view==='policies') el.innerHTML = renderPolicies();
+  else if(state.view==='leads') el.innerHTML = renderLeads();
+  else if(state.view==='companies') el.innerHTML = renderCompanies();
+  else if(state.view==='settings') el.innerHTML = renderSettings();
+  wireContentEvents();
+
+  if(activeId){
+    const restored = document.getElementById(activeId);
+    if(restored && (restored.tagName==='INPUT' || restored.tagName==='TEXTAREA')){
+      restored.focus();
+      if(selStart!==null){ try{ restored.setSelectionRange(selStart, selEnd); }catch(e){} }
+    }
+  }
+}
+
+/* =========================================================================
+   DASHBOARD
+========================================================================= */
+function renderDashboard(){
+  const active = state.policies.filter(p=>p.status==='Active');
+  const thisMonthKey = todayStr().slice(0,7);
+  const renewingThisMonth = active.filter(p=>monthYearKey(p.renewal_date)===thisMonthKey);
+  const next30 = active.filter(p=>{const dl=daysUntil(p.renewal_date); return dl!==null && dl>=0 && dl<=30;});
+  const overdue = active.filter(p=>{const dl=daysUntil(p.renewal_date); return dl!==null && dl<0;});
+  const totalPremium = active.reduce((s,p)=>s+(parseFloat(p.premium_amount)||0),0);
+
+  const upcoming = [...active].filter(p=>daysUntil(p.renewal_date)!==null)
+    .sort((a,b)=>daysUntil(a.renewal_date)-daysUntil(b.renewal_date)).slice(0,8);
+
+  const banner = state.settings.backend==='local' && !state.settings.bannerDismissed ? `
+    <div class="banner">
+      ${icon('warn')}
+      <span>You're in <b>local demo mode</b> — data stays only in this browser. Connect Google Sheets or Supabase in Settings for permanent storage and real email reminders.</span>
+      <button id="dismiss-banner">Dismiss</button>
+    </div>` : '';
+
+  return `
+    ${banner}
+    <div class="stat-grid">
+      <div class="stat-card"><div class="label">Active Policies</div><div class="value">${active.length}</div><div class="foot">of ${state.policies.length} total on record</div></div>
+      <div class="stat-card"><div class="label">Renewing This Month</div><div class="value warn">${renewingThisMonth.length}</div><div class="foot">${monthYearLabel(thisMonthKey)}</div></div>
+      <div class="stat-card"><div class="label">Due in Next 30 Days</div><div class="value warn">${next30.length}</div><div class="foot">across all months</div></div>
+      <div class="stat-card"><div class="label">Overdue</div><div class="value bad">${overdue.length}</div><div class="foot">needs immediate follow-up</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <h2>Upcoming Renewals</h2>
+        <button class="btn btn-ghost btn-sm" data-goto="renewals">View all ${icon('bell')}</button>
+      </div>
+      <div class="card-body" style="padding:0;">
+        ${upcoming.length===0? emptyState('bell','Nothing on the horizon','Renewal dates you enter will show up here.') : `
+        <div class="table-wrap"><table>
+          <thead><tr><th>Customer</th><th>Company</th><th>Type</th><th>Renewal Date</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+          ${upcoming.map(p=>`
+            <tr>
+              <td><div class="cell-name">${escapeHtml(p.customer_name)}</div><div class="cell-sub">${escapeHtml(p.policy_number)}</div></td>
+              <td>${escapeHtml(p.company_name)}</td>
+              <td>${escapeHtml(p.policy_type)}</td>
+              <td class="mono">${formatDateDisplay(p.renewal_date)}</td>
+              <td>${urgencyBadge(daysUntil(p.renewal_date))}</td>
+              <td><div class="row-actions"><button class="icon-btn" data-remind="${p.id}" title="Send reminder">${icon('mail')}</button></div></td>
+            </tr>`).join('')}
+          </tbody>
+        </table></div>`}
+      </div>
+    </div>
+    <div style="margin-top:18px;" class="card">
+      <div class="card-head"><h2>Book of Business</h2></div>
+      <div class="card-body">
+        <div class="helptext">Total active sum under management (premium): <b class="mono" style="color:var(--ink);font-size:14px;">${currency(totalPremium)}</b> across ${active.length} active polic${active.length===1?'y':'ies'}.</div>
+      </div>
+    </div>
+  `;
+}
+function emptyState(iconName, title, sub){
+  return `<div class="empty">${icon(iconName)}<h3>${title}</h3><p>${sub}</p></div>`;
+}
+
+/* =========================================================================
+   RENEWALS
+========================================================================= */
+function getFilteredRenewals(){
+  const f = state.filters;
+  let list = state.policies.filter(p=>p.status==='Active');
+  if(f.renewalSearch){
+    const q = f.renewalSearch.toLowerCase();
+    list = list.filter(p=>(p.customer_name||'').toLowerCase().includes(q)||(p.policy_number||'').toLowerCase().includes(q)||(p.mobile||'').includes(q));
+  }
+  if(f.renewal==='overdue'){
+    list = list.filter(p=>{const dl=daysUntil(p.renewal_date); return dl!==null && dl<0;});
+  } else if(f.renewal==='this_month'){
+    const key = todayStr().slice(0,7);
+    list = list.filter(p=>monthYearKey(p.renewal_date)===key);
+  } else if(f.renewal==='next_month'){
+    const d = new Date(); d.setMonth(d.getMonth()+1);
+    const key = d.toISOString().slice(0,7);
+    list = list.filter(p=>monthYearKey(p.renewal_date)===key);
+  } else if(f.renewal==='next30'){
+    list = list.filter(p=>{const dl=daysUntil(p.renewal_date); return dl!==null && dl>=0 && dl<=30;});
+  } else if(f.renewal==='next90'){
+    list = list.filter(p=>{const dl=daysUntil(p.renewal_date); return dl!==null && dl>=0 && dl<=90;});
+  } else if(f.renewal==='month' && f.renewalMonth){
+    list = list.filter(p=>monthYearKey(p.renewal_date)===f.renewalMonth);
+  } else if(f.renewal==='range' && f.renewalFrom && f.renewalTo){
+    list = list.filter(p=>{const d=normalizeDate(p.renewal_date); return d>=f.renewalFrom && d<=f.renewalTo;});
+  }
+  list.sort((a,b)=>daysUntil(a.renewal_date)-daysUntil(b.renewal_date));
+  return list;
+}
+
+function renderRenewals(){
+  const f = state.filters;
+  const list = getFilteredRenewals();
+  const chips = [
+    ['overdue','Overdue'],['this_month','This Month'],['next_month','Next Month'],
+    ['next30','Next 30 Days'],['next90','Next 90 Days'],['month','Pick Month'],['range','Custom Range'],['all','All Active'],
+  ];
+  return `
+    <div class="filter-bar">
+      <div class="search-box">${icon('search')}<input type="text" id="renewal-search" placeholder="Search by name, policy no, mobile…" value="${escapeHtml(f.renewalSearch)}"></div>
+      ${f.renewal==='month'?`<input type="month" id="renewal-month-picker" value="${f.renewalMonth}">`:''}
+      ${f.renewal==='range'?`<input type="date" id="renewal-from" value="${f.renewalFrom}"><span style="color:var(--steel)">to</span><input type="date" id="renewal-to" value="${f.renewalTo}">`:''}
+    </div>
+    <div class="chip-row" style="margin-bottom:18px;">
+      ${chips.map(([k,label])=>`<button class="chip ${f.renewal===k?'active':''}" data-renewal-filter="${k}">${label}</button>`).join('')}
+    </div>
+    ${state.selectedRenewalIds.size>0?`
+      <div class="banner info">
+        <span><b>${state.selectedRenewalIds.size}</b> selected</span>
+        <button class="btn btn-brass btn-sm" id="btn-bulk-remind" style="margin-left:auto;">${icon('mail')} Send Reminder Emails</button>
+      </div>`:''}
+    <div class="card">
+      <div class="table-wrap">
+      ${list.length===0? emptyState('bell','No renewals in this range','Try a different filter, or add policies to get started.') : `
+      <table>
+        <thead><tr>
+          <th><input type="checkbox" id="select-all-renewals"></th>
+          <th>Customer</th><th>Contact</th><th>Company</th><th>Type</th><th>Renewal Date</th><th>Status</th><th>Last Reminder</th><th></th>
+        </tr></thead>
+        <tbody>
+        ${list.map(p=>`
+          <tr>
+            <td><input type="checkbox" class="renewal-check" data-id="${p.id}" ${state.selectedRenewalIds.has(p.id)?'checked':''}></td>
+            <td><div class="cell-name">${escapeHtml(p.customer_name)}</div><div class="cell-sub">${escapeHtml(p.policy_number)}</div></td>
+            <td><div class="cell-sub">${escapeHtml(p.mobile)}</div><div class="cell-sub">${escapeHtml(p.email)}</div></td>
+            <td>${escapeHtml(p.company_name)}</td>
+            <td>${escapeHtml(p.policy_type)}</td>
+            <td class="mono">${formatDateDisplay(p.renewal_date)}<div>${urgencyBadge(daysUntil(p.renewal_date))}</div></td>
+            <td>${statusBadge(p.status)}</td>
+            <td class="cell-sub">${p.last_reminder_sent?formatDateDisplay(p.last_reminder_sent):'Never'}</td>
+            <td><div class="row-actions">
+              <button class="icon-btn" data-remind="${p.id}" title="Send reminder">${icon('mail')}</button>
+              <button class="icon-btn" data-renew="${p.id}" title="Mark renewed">${icon('check')}</button>
+              <button class="icon-btn" data-edit="${p.id}" title="Edit">${icon('edit')}</button>
+            </div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`}
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================================
+   POLICIES (all)
+========================================================================= */
+function getFilteredPolicies(){
+  const f = state.filters;
+  let list = [...state.policies];
+  if(f.polSearch){
+    const q = f.polSearch.toLowerCase();
+    list = list.filter(p=>(p.customer_name||'').toLowerCase().includes(q)||(p.policy_number||'').toLowerCase().includes(q)||(p.mobile||'').includes(q)||(p.email||'').toLowerCase().includes(q));
+  }
+  if(f.polCompany) list = list.filter(p=>p.company_name===f.polCompany);
+  if(f.polType) list = list.filter(p=>p.policy_type===f.polType);
+  if(f.polStatus) list = list.filter(p=>p.status===f.polStatus);
+  if(f.polSort==='name') list.sort((a,b)=>(a.customer_name||'').localeCompare(b.customer_name||''));
+  else if(f.polSort==='renewal') list.sort((a,b)=>normalizeDate(a.renewal_date).localeCompare(normalizeDate(b.renewal_date)));
+  else if(f.polSort==='recent') list.sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+  return list;
+}
+function renderPolicies(){
+  const f = state.filters;
+  const companyOptions = getAllCompanyNames();
+  return `
+    <div class="filter-bar">
+      <div class="search-box">${icon('search')}<input type="text" id="pol-search" placeholder="Search name, policy no, mobile, email…" value="${escapeHtml(f.polSearch)}"></div>
+      <select id="pol-company"><option value="">All Companies</option>${companyOptions.map(c=>`<option ${f.polCompany===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
+      <select id="pol-type"><option value="">All Types</option>${POLICY_TYPES.map(t=>`<option ${f.polType===t?'selected':''}>${escapeHtml(t)}</option>`).join('')}</select>
+      <select id="pol-status"><option value="">All Statuses</option>${POLICY_STATUSES.map(s=>`<option ${f.polStatus===s?'selected':''}>${s}</option>`).join('')}</select>
+      <select id="pol-sort"><option value="name" ${f.polSort==='name'?'selected':''}>Sort: Name A–Z</option><option value="renewal" ${f.polSort==='renewal'?'selected':''}>Sort: Renewal Date</option><option value="recent" ${f.polSort==='recent'?'selected':''}>Sort: Recently Added</option></select>
+      <button class="btn btn-ghost btn-sm" id="btn-export-csv">${icon('download')} Export CSV</button>
+    </div>
+    <div id="policies-results">${renderPoliciesResults()}</div>
+  `;
+}
+function renderPoliciesResults(){
+  const list = getFilteredPolicies();
+  return `
+    <div class="card">
+      <div class="table-wrap">
+      ${list.length===0? emptyState('list','No policies yet', 'Add your first policy to start tracking renewals.') : `
+      <table>
+        <thead><tr><th>Customer</th><th>Contact</th><th>Policy No.</th><th>Type</th><th>Company</th><th>Issue Date</th><th>Renewal Date</th><th>Premium</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        ${list.map(p=>`
+          <tr>
+            <td class="cell-name">${escapeHtml(p.customer_name)}</td>
+            <td><div class="cell-sub">${escapeHtml(p.mobile)}</div><div class="cell-sub">${escapeHtml(p.email)}</div></td>
+            <td class="mono">${escapeHtml(p.policy_number)}</td>
+            <td>${escapeHtml(p.policy_type)}</td>
+            <td>${escapeHtml(p.company_name)}</td>
+            <td class="mono">${formatDateDisplay(p.issue_date)}</td>
+            <td class="mono">${formatDateDisplay(p.renewal_date)}</td>
+            <td class="mono">${currency(p.premium_amount)}</td>
+            <td>${statusBadge(p.status)}</td>
+            <td><div class="row-actions">
+              <button class="icon-btn" data-edit="${p.id}" title="Edit">${icon('edit')}</button>
+              <button class="icon-btn" data-delete="${p.id}" title="Delete">${icon('trash')}</button>
+            </div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`}
+      </div>
+    </div>
+  `;
+}
+function refreshPoliciesResults(){
+  const el = document.getElementById('policies-results');
+  if(!el) return;
+  el.innerHTML = renderPoliciesResults();
+  wirePoliciesResultEvents();
+}
+function wirePoliciesResultEvents(){
+  document.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>openPolicyModal(state.policies.find(p=>p.id===el.dataset.edit)));
+  document.querySelectorAll('[data-delete]').forEach(el=>el.onclick=()=>confirmDeletePolicy(el.dataset.delete));
+}
+function getAllCompanyNames(){
+  const set = new Set(state.companies.map(c=>c.name));
+  state.policies.forEach(p=>{ if(p.company_name) set.add(p.company_name); });
+  return [...set].sort();
+}
+
+/* =========================================================================
+   LEADS (Kanban pipeline)
+========================================================================= */
+function getLeadStatuses(){
+  return [...state.leadStatusDefs].sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+}
+function matchesLeadFilters(l){
+  const f = state.filters;
+  if(f.leadSearch){
+    const q = f.leadSearch.toLowerCase();
+    if(!((l.name||'').toLowerCase().includes(q) || (l.mobile||'').includes(q) || (l.email||'').toLowerCase().includes(q))) return false;
+  }
+  if(f.leadAssignee && l.advisor_username !== f.leadAssignee) return false;
+  return true;
+}
+function assignedLabelForLead(l){
+  if(state.settings.backend!=='sheets' || !l.advisor_username) return '';
+  const u = state.sheetsUsers.find(u=>u.username===l.advisor_username);
+  const label = u ? u.display_name : (state.sheetsSession && state.sheetsSession.username===l.advisor_username ? state.sheetsSession.display_name : l.advisor_username);
+  return `<div class="kc-assignee">${escapeHtml(label)}</div>`;
+}
+function renderLeads(){
+  const statuses = getLeadStatuses();
+  const isSheetsAdmin = state.settings.backend==='sheets' && state.sheetsSession && state.sheetsSession.role==='admin';
+  if(statuses.length===0){
+    return emptyState('funnel','Setting up your pipeline…','Lead statuses are still loading — try refreshing in a moment.');
+  }
+  return `
+    <div class="filter-bar">
+      <div class="search-box">${icon('search')}<input type="text" id="lead-search" placeholder="Search leads by name, mobile, email…" value="${escapeHtml(state.filters.leadSearch)}"></div>
+      ${isSheetsAdmin?`<select id="lead-assignee-filter"><option value="">All Advisors</option>${state.sheetsUsers.map(u=>`<option value="${escapeHtml(u.username)}" ${state.filters.leadAssignee===u.username?'selected':''}>${escapeHtml(u.display_name)}</option>`).join('')}</select>`:''}
+    </div>
+    <div id="leads-board">${renderLeadsBoard()}</div>
+  `;
+}
+function renderLeadsBoard(){
+  const statuses = getLeadStatuses();
+  return `
+    <div class="kanban-board">
+      ${statuses.map(s=>{
+        const colLeads = state.leads.filter(l=>l.status===s.id && matchesLeadFilters(l));
+        return `
+        <div class="kanban-col">
+          <div class="kanban-col-head">
+            <span class="badge ${s.color}">${escapeHtml(s.label)}</span>
+            <span class="kanban-count">${colLeads.length}</span>
+          </div>
+          <div class="kanban-dropzone" data-status-drop="${s.id}">
+            ${colLeads.length===0 ? `<div class="kanban-empty">No leads</div>` : colLeads.map(l=>renderLeadCard(l, s)).join('')}
+          </div>
+          <button class="btn btn-ghost btn-sm kanban-add-btn" data-add-status="${s.id}">${icon('plus')} Add Lead</button>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+function refreshLeadsBoard(){
+  const el = document.getElementById('leads-board');
+  if(!el) return;
+  el.innerHTML = renderLeadsBoard();
+  wireLeadsBoardEvents();
+}
+function wireLeadsBoardEvents(){
+  document.querySelectorAll('[data-add-status]').forEach(el=>el.onclick=()=>openLeadModal(null, el.dataset.addStatus));
+  document.querySelectorAll('[data-edit-lead]').forEach(el=>el.onclick=()=>openLeadModal(state.leads.find(l=>l.id===el.dataset.editLead)));
+  document.querySelectorAll('[data-delete-lead]').forEach(el=>el.onclick=()=>confirmDeleteLead(el.dataset.deleteLead));
+  document.querySelectorAll('[data-convert-lead]').forEach(el=>el.onclick=()=>{
+    const lead = state.leads.find(l=>l.id===el.dataset.convertLead);
+    if(lead) openConvertLeadModal(lead, lead.status);
+  });
+  document.querySelectorAll('.kanban-card').forEach(card=>{
+    card.addEventListener('dragstart', e=>{ e.dataTransfer.setData('text/plain', card.dataset.leadId); card.classList.add('dragging'); });
+    card.addEventListener('dragend', ()=> card.classList.remove('dragging'));
+  });
+  document.querySelectorAll('.kanban-dropzone').forEach(zone=>{
+    zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', ()=> zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e=>{
+      e.preventDefault(); zone.classList.remove('drag-over');
+      const leadId = e.dataTransfer.getData('text/plain');
+      changeLeadStatus(leadId, zone.dataset.statusDrop);
+    });
+  });
+}
+function renderLeadCard(l, statusDef){
+  const canConvert = statusDef.triggers_conversion && !l.closed_policy_id;
+  return `
+  <div class="kanban-card" draggable="true" data-lead-id="${l.id}">
+    <div class="kc-name">${escapeHtml(l.name)}</div>
+    ${(l.mobile||l.email)?`<div class="kc-sub">${escapeHtml(l.mobile||l.email)}</div>`:''}
+    ${l.policy_type_interest?`<span class="kc-tag">${escapeHtml(l.policy_type_interest)}</span>`:''}
+    ${l.expected_premium?`<div class="kc-premium">${currency(l.expected_premium)}</div>`:''}
+    ${l.closed_policy_id?`<div class="kc-assignee">${icon('check')} Converted</div>`:''}
+    ${assignedLabelForLead(l)}
+    <div class="kc-actions">
+      <button class="icon-btn" data-edit-lead="${l.id}" title="Edit">${icon('edit')}</button>
+      ${canConvert?`<button class="icon-btn" data-convert-lead="${l.id}" title="Convert to policy">${icon('mail')}</button>`:''}
+      <button class="icon-btn" data-delete-lead="${l.id}" title="Delete">${icon('trash')}</button>
+    </div>
+  </div>`;
+}
+function openLeadModal(lead, defaultStatus){
+  state.editingLead = lead || null;
+  state.modal = {type:'lead', lead: lead||{}, defaultStatus};
+  renderModal();
+}
+function leadFormModal(m){
+  const l0 = m.lead || {};
+  const isNew = !l0.id;
+  const statuses = getLeadStatuses();
+  const isSheetsAdmin = state.settings.backend==='sheets' && state.sheetsSession && state.sheetsSession.role==='admin';
+  const l = Object.assign({
+    name:'', email:'', mobile:'', source:'', policy_type_interest:'', expected_premium:'', notes:'',
+    status: m.defaultStatus || (statuses[0] ? statuses[0].id : ''),
+    advisor_username: (state.settings.backend==='sheets' && state.sheetsSession) ? state.sheetsSession.username : ''
+  }, l0);
+  return `
+  <div class="overlay" id="modal-overlay">
+    <div class="modal wide">
+      <div class="modal-head"><h3>${isNew?'Add Lead':'Edit Lead'}</h3><button class="close-x" id="modal-close">${icon('x')}</button></div>
+      <div class="modal-body">
+        <form id="lead-form">
+        <div class="form-grid">
+          <div class="field"><label>Name *</label><input type="text" name="name" required value="${escapeHtml(l.name)}"></div>
+          <div class="field"><label>Mobile</label><input type="tel" name="mobile" value="${escapeHtml(l.mobile)}"></div>
+          <div class="field full"><label>Email</label><input type="email" name="email" value="${escapeHtml(l.email)}"></div>
+          <div class="field"><label>Interested In</label>
+            <select name="policy_type_interest"><option value="">Select…</option>${POLICY_TYPES.map(t=>`<option ${l.policy_type_interest===t?'selected':''}>${t}</option>`).join('')}</select>
+          </div>
+          <div class="field"><label>Expected Premium (₹)</label><input type="number" step="0.01" name="expected_premium" value="${l.expected_premium}"></div>
+          <div class="field"><label>Source</label><input type="text" name="source" placeholder="Referral, website, cold call…" value="${escapeHtml(l.source)}"></div>
+          <div class="field"><label>Status</label>
+            <select name="status">${statuses.map(s=>`<option value="${s.id}" ${l.status===s.id?'selected':''}>${escapeHtml(s.label)}</option>`).join('')}</select>
+          </div>
+          ${isSheetsAdmin?`<div class="field"><label>Assigned To</label>
+            <select name="advisor_username">${state.sheetsUsers.map(u=>`<option value="${escapeHtml(u.username)}" ${l.advisor_username===u.username?'selected':''}>${escapeHtml(u.display_name)}</option>`).join('')}</select>
+          </div>`:''}
+        </div>
+        <div class="field full"><label>Notes</label><textarea name="notes" rows="3" placeholder="Anything worth remembering about this lead…">${escapeHtml(l.notes)}</textarea></div>
+        </form>
+        ${l.closed_policy_id?`<p class="helptext">This lead has already been converted to a policy.</p>`:''}
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+        <button class="btn btn-brass" id="modal-save-lead">${isNew?'Add Lead':'Save Changes'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+async function saveLeadFromForm(){
+  const form = document.getElementById('lead-form');
+  const fd = new FormData(form);
+  const payload = {};
+  fd.forEach((v,k)=>payload[k]=v);
+  if(!payload.name){ showToast('Name is required','err'); return; }
+  const btn = document.getElementById('modal-save-lead');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try{
+    const provider = getProvider();
+    const isNew = !state.editingLead || !state.editingLead.id;
+    let saved;
+    if(isNew){
+      saved = await provider.createLead(payload);
+      state.leads.push(saved);
+    } else {
+      const updated = await provider.updateLead(state.editingLead.id, payload);
+      const idx = state.leads.findIndex(l=>l.id===state.editingLead.id);
+      state.leads[idx] = Object.assign({}, state.leads[idx], updated||payload);
+      saved = state.leads[idx];
+    }
+    state.modal = null; render();
+    const statusDef = getLeadStatuses().find(s=>s.id===saved.status);
+    if(statusDef && statusDef.triggers_conversion && !saved.closed_policy_id){
+      openConvertLeadModal(saved, saved.status);
+    } else {
+      showToast(isNew?'Lead added':'Lead updated','ok');
+    }
+  }catch(e){
+    showToast('Could not save: '+e.message,'err');
+    btn.disabled=false; btn.textContent = (state.editingLead && state.editingLead.id) ? 'Save Changes':'Add Lead';
+  }
+}
+function confirmDeleteLead(id){
+  const l = state.leads.find(x=>x.id===id); if(!l) return;
+  state.modal = {type:'confirm', title:'Delete Lead', message:`Delete the lead for ${l.name}? This cannot be undone.`, confirmLabel:'Delete', onConfirm: ()=>deleteLeadNow(id)};
+  renderModal();
+}
+async function deleteLeadNow(id){
+  try{
+    await getProvider().deleteLead(id);
+    state.leads = state.leads.filter(l=>l.id!==id);
+    renderContent();
+    showToast('Lead deleted','ok');
+  }catch(e){ showToast('Could not delete: '+e.message,'err'); }
+}
+function changeLeadStatus(leadId, newStatusKey){
+  const lead = state.leads.find(l=>l.id===leadId);
+  if(!lead || lead.status===newStatusKey) return;
+  updateLeadStatusValue(leadId, newStatusKey);
+}
+async function updateLeadStatusValue(leadId, newStatusKey){
+  try{
+    const updated = await getProvider().updateLead(leadId, {status:newStatusKey});
+    const idx = state.leads.findIndex(l=>l.id===leadId);
+    if(idx===-1) return;
+    state.leads[idx] = Object.assign({}, state.leads[idx], updated||{status:newStatusKey});
+    renderContent();
+    const statusDef = getLeadStatuses().find(s=>s.id===newStatusKey);
+    if(statusDef && statusDef.triggers_conversion && !state.leads[idx].closed_policy_id){
+      openConvertLeadModal(state.leads[idx], newStatusKey);
+    }
+  }catch(e){ showToast('Could not update lead: '+e.message,'err'); }
+}
+function openConvertLeadModal(lead, newStatusKey){
+  state.convertingLeadId = lead.id;
+  state.convertingLeadNewStatus = newStatusKey;
+  const prefill = {
+    customer_name: lead.name || '', email: lead.email || '', mobile: lead.mobile || '',
+    policy_type: lead.policy_type_interest || '',
+    premium_amount: lead.expected_premium || '',
+    notes: (lead.notes ? lead.notes + '\n\n' : '') + 'Converted from lead.'
+  };
+  openPolicyModal(prefill);
+}
+
+/* =========================================================================
+   COMPANIES
+========================================================================= */
+function renderCompanies(){
+  return `
+    <div class="card" style="margin-bottom:18px;">
+      <div class="card-body">
+        <div class="field" style="margin-bottom:0;">
+          <label>Add a new company</label>
+          <div style="display:flex;gap:10px;">
+            <input type="text" id="new-company-name" placeholder="e.g. Aditya Birla Health" style="flex:1;">
+            <button class="btn btn-brass" id="btn-add-company">${icon('plus')} Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>${state.companies.length} Compan${state.companies.length===1?'y':'ies'}</h2></div>
+      <div class="card-body">
+        ${state.companies.length===0? emptyState('building','No companies yet','Add insurers above to see them here.') : `
+        <div>${state.companies.map(c=>`
+          <span class="company-chip">${escapeHtml(c.name)}<button data-delete-company="${c.id}" title="Remove">${icon('x')}</button></span>
+        `).join('')}</div>`}
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================================
+   SETTINGS
+========================================================================= */
+function renderSettings(){
+  const s = state.settings;
+  const isSheetsAdvisor = s.backend==='sheets' && state.sheetsSession && state.sheetsSession.role!=='admin';
+
+  if(isSheetsAdvisor){
+    return `
+      <div class="section-title">Account</div>
+      <div class="card"><div class="card-body">
+        <p class="helptext">Connected via Google Sheets. Backend and connection settings are managed by your admin.</p>
+        <p class="helptext" style="margin-top:8px;">Signed in as <b style="color:var(--ink)">${escapeHtml(state.sheetsSession.display_name)}</b>. <button id="btn-settings-sheets-logout" style="background:none;border:none;color:var(--brass-dark);font-weight:700;text-decoration:underline;padding:0;">Log out</button></p>
+      </div></div>
+
+      <div class="section-title">Reminder Email Template</div>
+      <div class="card"><div class="card-body">
+        <p class="helptext">Available placeholders: <span class="mono">{{customer_name}} {{policy_number}} {{policy_type}} {{company_name}} {{renewal_date}}</span></p>
+        <div class="field"><label>Subject</label><input type="text" id="tpl-subject" value="${escapeHtml(s.template.subject)}"></div>
+        <div class="field"><label>Body</label><textarea id="tpl-body" rows="10">${escapeHtml(s.template.body)}</textarea></div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" id="btn-save-template">Save Template</button>
+          <button class="btn btn-ghost" id="btn-reset-template">Reset to Default</button>
+        </div>
+      </div></div>
+    `;
+  }
+
+  return `
+    <div class="section-title">Data Backend</div>
+    <div class="card"><div class="card-body">
+      <div class="radio-card-row" style="margin-bottom:18px;">
+        <label class="radio-card ${s.backend==='local'?'active':''}"><input type="radio" name="backend" value="local" ${s.backend==='local'?'checked':''} style="display:none;">Local (demo)</label>
+        <label class="radio-card ${s.backend==='sheets'?'active':''}"><input type="radio" name="backend" value="sheets" ${s.backend==='sheets'?'checked':''} style="display:none;">Google Sheets</label>
+        <label class="radio-card ${s.backend==='supabase'?'active':''}"><input type="radio" name="backend" value="supabase" ${s.backend==='supabase'?'checked':''} style="display:none;">Supabase</label>
+      </div>
+
+      ${s.backend==='local'?`<p class="helptext">Data is stored only in this browser (localStorage). Great for trying things out, but it won't sync across devices and can be lost if you clear browser data. Emails are simulated, not actually sent. Single-user only.</p>`:''}
+
+      ${s.backend==='sheets'?`
+      <div class="banner info">${icon('warn')}<span>With the v2 Apps Script backend, each advisor signs in with a username and password you create, and only ever sees <b>their own</b> policies. You (the admin) can see everyone's. The Companies list is shared by the whole team. This section is only visible to admins.</span></div>
+      <div class="field"><label>Apps Script Web App URL</label>
+        <input type="url" id="apps-script-url" placeholder="https://script.google.com/macros/s/…/exec" value="${escapeHtml(s.appsScriptUrl)}">
+        <span class="hint">Deploy the included google-apps-script.gs to your Google Sheet as a Web App, then paste the URL here. Renewal emails send automatically from your Google account via MailApp — no extra setup.</span>
+      </div>
+      ${state.sheetsSession?`<p class="helptext">Signed in as <b style="color:var(--ink)">${escapeHtml(state.sheetsSession.display_name)}</b> (${state.sheetsSession.role}). <button id="btn-settings-sheets-logout" style="background:none;border:none;color:var(--brass-dark);font-weight:700;text-decoration:underline;padding:0;">Log out</button></p>`:''}
+      `:''}
+
+      ${s.backend==='supabase'?`
+      <div class="banner info">${icon('warn')}<span>Supabase requires each advisor to sign in with their own email and password, and only ever shows them <b>their own</b> policies. The insurer list under Companies is shared by everyone on the team.</span></div>
+      <div class="form-grid">
+        <div class="field"><label>Project URL</label><input type="url" id="supabase-url" placeholder="https://xxxx.supabase.co" value="${escapeHtml(s.supabaseUrl)}"></div>
+        <div class="field"><label>Anon Public Key</label><input type="text" id="supabase-key" placeholder="eyJhbGciOi…" value="${escapeHtml(s.supabaseKey)}"></div>
+      </div>
+      <p class="helptext">Run the included supabase-schema.sql (v2) in your Supabase project's SQL Editor first to create the tables with per-advisor access control.</p>
+      ${state.session?`<p class="helptext">Signed in as <b style="color:var(--ink)">${escapeHtml(state.session.user.email)}</b>. <button id="btn-settings-logout" style="background:none;border:none;color:var(--brass-dark);font-weight:700;text-decoration:underline;padding:0;">Log out</button></p>`:''}`:''}
+
+      <div style="display:flex;gap:10px;margin-top:10px;">
+        <button class="btn btn-primary" id="btn-save-backend">Save & Reconnect</button>
+        <button class="btn btn-ghost" id="btn-test-connection">${icon('refresh')} Test Connection</button>
+      </div>
+      <div id="conn-result" style="margin-top:10px;"></div>
+    </div></div>
+
+    ${s.backend==='supabase'?`
+    <div class="section-title">Email Sending (EmailJS)</div>
+    <div class="card"><div class="card-body">
+      <p class="helptext">Supabase doesn't send emails on its own, so this connects a free <a href="https://www.emailjs.com" target="_blank" style="color:var(--brass-dark);">EmailJS</a> account to send renewal reminders straight from the browser.</p>
+      <div class="form-grid">
+        <div class="field"><label>Service ID</label><input type="text" id="emailjs-service" value="${escapeHtml(s.emailjsServiceId)}"></div>
+        <div class="field"><label>Template ID</label><input type="text" id="emailjs-template" value="${escapeHtml(s.emailjsTemplateId)}"></div>
+        <div class="field full"><label>Public Key</label><input type="text" id="emailjs-key" value="${escapeHtml(s.emailjsPublicKey)}"></div>
+      </div>
+      <button class="btn btn-primary" id="btn-save-email">Save Email Settings</button>
+    </div></div>`:''}
+
+    ${s.backend==='sheets' && state.sheetsSession && state.sheetsSession.role==='admin' ? renderManageAdvisors() : ''}
+
+    ${s.backend==='sheets' && state.sheetsSession && state.sheetsSession.role==='admin' ? renderBackupsSettings() : ''}
+
+    ${(s.backend!=='sheets' || (state.sheetsSession && state.sheetsSession.role==='admin')) ? renderLeadPipelineSettings() : ''}
+
+    <div class="section-title">Reminder Email Template</div>
+    <div class="card"><div class="card-body">
+      <p class="helptext">Available placeholders: <span class="mono">{{customer_name}} {{policy_number}} {{policy_type}} {{company_name}} {{renewal_date}}</span></p>
+      <div class="field"><label>Subject</label><input type="text" id="tpl-subject" value="${escapeHtml(s.template.subject)}"></div>
+      <div class="field"><label>Body</label><textarea id="tpl-body" rows="10">${escapeHtml(s.template.body)}</textarea></div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" id="btn-save-template">Save Template</button>
+        <button class="btn btn-ghost" id="btn-reset-template">Reset to Default</button>
+      </div>
+    </div></div>
+  `;
+}
+
+function renderManageAdvisors(){
+  const users = state.sheetsUsers||[];
+  return `
+    <div class="section-title">Manage Advisors</div>
+    <div class="card" style="margin-bottom:18px;"><div class="card-body">
+      <p class="helptext" style="margin-bottom:14px;">Create a login for each advisor. Share their username and password with them directly — there's no self-signup and no automatic password-reset email.</p>
+      <div class="form-grid">
+        <div class="field"><label>Name</label><input type="text" id="new-adv-name" placeholder="e.g. Priya Sharma"></div>
+        <div class="field"><label>Username</label><input type="text" id="new-adv-username" placeholder="priya"></div>
+        <div class="field"><label>Temporary Password</label><input type="password" id="new-adv-password" placeholder="At least 6 characters"></div>
+        <div class="field"><label>Role</label>
+          <select id="new-adv-role"><option value="advisor">Advisor (own policies only)</option><option value="admin">Admin (sees everyone's)</option></select>
+        </div>
+      </div>
+      <button class="btn btn-brass" id="btn-add-advisor">${icon('plus')} Add Advisor</button>
+    </div></div>
+    <div class="card"><div class="card-head"><h2>${users.length} Advisor${users.length===1?'':'s'}</h2></div>
+      <div class="table-wrap">
+      ${users.length===0? emptyState('building','No advisors yet','Add one above to get started.') : `
+      <table>
+        <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        ${users.map(u=>{
+          const active = u.active!=='FALSE' && u.active!==false;
+          return `<tr>
+            <td class="cell-name">${escapeHtml(u.display_name)}</td>
+            <td class="mono">${escapeHtml(u.username)}</td>
+            <td>${u.role==='admin'?`<span class="badge brass">Admin</span>`:`<span class="badge neutral">Advisor</span>`}</td>
+            <td>${active?`<span class="badge good">Active</span>`:`<span class="badge bad">Deactivated</span>`}</td>
+            <td><div class="row-actions">
+              <button class="icon-btn" data-reset-pwd="${escapeHtml(u.username)}" title="Reset password">${icon('edit')}</button>
+              <button class="icon-btn" data-toggle-active="${escapeHtml(u.username)}" data-active="${active}" title="${active?'Deactivate':'Activate'}">${active?icon('x'):icon('check')}</button>
+            </div></td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>`}
+      </div>
+    </div>
+  `;
+}
+
+async function addAdvisorHandler(){
+  const name = document.getElementById('new-adv-name').value.trim();
+  const username = document.getElementById('new-adv-username').value.trim();
+  const password = document.getElementById('new-adv-password').value;
+  const role = document.getElementById('new-adv-role').value;
+  if(!username || !password){ showToast('Enter a username and password','err'); return; }
+  if(password.length<6){ showToast('Password must be at least 6 characters','err'); return; }
+  try{
+    await SheetsProvider.call('adminAddUser', {username, password, display_name:name, role});
+    state.sheetsUsers = await SheetsProvider.call('adminListUsers', {});
+    renderContent();
+    showToast('Advisor added','ok');
+  }catch(e){ showToast('Could not add advisor: '+e.message, 'err'); }
+}
+async function toggleAdvisorActiveHandler(username, currentlyActive){
+  try{
+    await SheetsProvider.call('adminSetUserActive', {username, active: !currentlyActive});
+    state.sheetsUsers = await SheetsProvider.call('adminListUsers', {});
+    renderContent();
+    showToast(currentlyActive?'Advisor deactivated':'Advisor reactivated','ok');
+  }catch(e){ showToast('Could not update: '+e.message, 'err'); }
+}
+function promptResetAdvisorPassword(username){
+  state.modal = {type:'confirm', title:'Reset Password', message:`Enter a new temporary password for ${username} below, then confirm.`, confirmLabel:'Reset', promptField:true, onConfirm: async (newPassword)=>{
+    if(!newPassword || newPassword.length<6){ showToast('Password must be at least 6 characters','err'); return; }
+    try{
+      await SheetsProvider.call('adminResetPassword', {username, newPassword});
+      showToast('Password reset for '+username,'ok');
+    }catch(e){ showToast('Could not reset: '+e.message,'err'); }
+  }};
+  renderModal();
+}
+
+function renderBackupsSettings(){
+  return `
+    <div class="section-title">Daily Backups</div>
+    <div class="card"><div class="card-body">
+      <p class="helptext" style="margin-bottom:14px;">A full copy of the spreadsheet (Policies, Companies, Leads — login credentials excluded) can be saved to a "Policy Register Backups" folder in Google Drive automatically every day.</p>
+      <p class="helptext" style="margin-bottom:14px;"><b style="color:var(--ink)">To turn on the daily schedule:</b> open the Apps Script editor for this sheet → click the clock icon (Triggers) in the left sidebar → Add Trigger → function <span class="mono">createDailySnapshot</span> → Event source: Time-driven → Type: Day timer → pick an hour range for end of day (e.g. 11pm–midnight) → Save.</p>
+      <button class="btn btn-brass" id="btn-backup-now">${icon('download')} Create Backup Now</button>
+      <div id="backup-result" style="margin-top:10px;"></div>
+    </div></div>
+  `;
+}
+async function createBackupNowHandler(){
+  const btn = document.getElementById('btn-backup-now');
+  const resultEl = document.getElementById('backup-result');
+  btn.disabled = true; btn.textContent = 'Creating backup…';
+  try{
+    const res = await SheetsProvider.call('createBackupNow', {});
+    resultEl.innerHTML = `<span class="badge good">${icon('check')} Saved "${escapeHtml(res.name)}"</span> <a href="${res.url}" target="_blank" style="margin-left:8px;color:var(--brass-dark);font-weight:600;font-size:12.5px;">Open in Drive →</a>`;
+    showToast('Backup created','ok');
+  }catch(e){
+    resultEl.innerHTML = `<span class="badge bad">Failed: ${escapeHtml(e.message)}</span>`;
+    showToast('Could not create backup: '+e.message,'err');
+  }
+  btn.disabled = false; btn.innerHTML = icon('download')+' Create Backup Now';
+}
+
+function renderLeadPipelineSettings(){
+  const statuses = getLeadStatuses();
+  const colorOptions = [['neutral','Gray'],['brass','Gold'],['warn','Amber'],['good','Green'],['bad','Red']];
+  return `
+    <div class="section-title">Lead Pipeline Statuses</div>
+    <div class="card" style="margin-bottom:18px;"><div class="card-body">
+      <p class="helptext" style="margin-bottom:14px;">These are the columns on the Leads board. Mark one as a <b>closing status</b> to prompt for policy details whenever a lead is moved there.</p>
+      <div class="form-grid">
+        <div class="field"><label>Status Name</label><input type="text" id="new-status-label" placeholder="e.g. Follow-up"></div>
+        <div class="field"><label>Color</label><select id="new-status-color">${colorOptions.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select></div>
+      </div>
+      <div class="checkbox-row" style="margin-bottom:14px;"><input type="checkbox" id="new-status-closing"><label for="new-status-closing" style="font-weight:500;">Closing status — prompt for policy details when a lead reaches here</label></div>
+      <button class="btn btn-brass" id="btn-add-status">${icon('plus')} Add Status</button>
+    </div></div>
+    <div class="card"><div class="card-body">
+      ${statuses.length===0? `<p class="helptext">No statuses yet.</p>` : statuses.map((s,i)=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:9px 0;${i<statuses.length-1?'border-bottom:1px solid var(--line);':''}">
+          <span class="badge ${s.color}">${escapeHtml(s.label)}</span>
+          ${s.triggers_conversion?`<span class="badge brass">Closing</span>`:''}
+          <div style="margin-left:auto;display:flex;gap:4px;">
+            <button class="icon-btn" data-move-status-up="${s.id}" ${i===0?'disabled':''} title="Move up">↑</button>
+            <button class="icon-btn" data-move-status-down="${s.id}" ${i===statuses.length-1?'disabled':''} title="Move down">↓</button>
+            <button class="icon-btn" data-delete-status="${s.id}" title="Delete">${icon('trash')}</button>
+          </div>
+        </div>
+      `).join('')}
+    </div></div>
+  `;
+}
+async function addLeadStatusHandler(){
+  const label = document.getElementById('new-status-label').value.trim();
+  const color = document.getElementById('new-status-color').value;
+  const closing = document.getElementById('new-status-closing').checked;
+  if(!label){ showToast('Enter a status name','err'); return; }
+  const maxOrder = Math.max(0, ...getLeadStatuses().map(s=>s.sort_order||0));
+  try{
+    const created = await getProvider().addLeadStatusDef({label, color, triggers_conversion:closing, sort_order:maxOrder+1});
+    state.leadStatusDefs.push(created);
+    renderContent(); showToast('Status added','ok');
+  }catch(e){ showToast('Could not add: '+e.message,'err'); }
+}
+async function moveLeadStatus(id, dir){
+  const list = getLeadStatuses();
+  const idx = list.findIndex(s=>s.id===id);
+  const swapIdx = idx+dir;
+  if(swapIdx<0 || swapIdx>=list.length) return;
+  const a = list[idx], b = list[swapIdx];
+  const aOrder = a.sort_order, bOrder = b.sort_order;
+  try{
+    await getProvider().updateLeadStatusDef(a.id, {sort_order:bOrder});
+    await getProvider().updateLeadStatusDef(b.id, {sort_order:aOrder});
+    a.sort_order = bOrder; b.sort_order = aOrder;
+    renderContent();
+  }catch(e){ showToast('Could not reorder: '+e.message,'err'); }
+}
+async function deleteLeadStatusHandler(id){
+  if(state.leads.some(l=>l.status===id)){
+    showToast('Move or delete leads out of this status first','err'); return;
+  }
+  try{
+    await getProvider().deleteLeadStatusDef(id);
+    state.leadStatusDefs = state.leadStatusDefs.filter(s=>s.id!==id);
+    renderContent(); showToast('Status removed','ok');
+  }catch(e){ showToast('Could not delete: '+e.message,'err'); }
+}
+
+/* =========================================================================
+   MODALS
+========================================================================= */
+/* =========================================================================
+   AUTH SCREEN (Supabase login/signup — gates the app when backend='supabase')
+========================================================================= */
+function renderAuthScreen(){
+  const s = state.settings;
+  if(!s.supabaseUrl || !s.supabaseKey){
+    return `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--paper);">
+      <div class="card" style="max-width:420px;width:100%;">
+        <div class="card-body" style="text-align:center;">
+          <span style="color:var(--brass);">${icon('shield')}</span>
+          <h2 style="margin:12px 0 6px;">Backend not configured yet</h2>
+          <p class="helptext">This CRM is set to use Supabase, but no Project URL / anon key has been entered. Ask whoever set up this CRM, or configure it yourself.</p>
+          <button class="btn btn-primary" id="goto-settings" style="margin-top:6px;">Go to Settings</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  return `
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--paper);">
+    <div class="card" style="max-width:400px;width:100%;">
+      <div class="card-body">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <span style="color:var(--brass);">${icon('shield')}</span>
+          <b class="font-display" style="font-size:18px;">Policy Register</b>
+        </div>
+        <div class="chip-row" style="margin-bottom:18px;">
+          <button class="chip ${state.authMode==='signin'?'active':''}" id="tab-signin" style="flex:1;text-align:center;justify-content:center;">Sign In</button>
+          <button class="chip ${state.authMode==='signup'?'active':''}" id="tab-signup" style="flex:1;text-align:center;justify-content:center;">Create Account</button>
+        </div>
+        ${state.authError?`<div class="banner" style="background:var(--bad-bg);border-color:#F0CFCB;color:var(--bad);">${icon('warn')}<span>${escapeHtml(state.authError)}</span></div>`:''}
+        ${state.authNotice?`<div class="banner info"><span>${escapeHtml(state.authNotice)}</span></div>`:''}
+        <div class="field"><label>Email</label><input type="email" id="auth-email" autocomplete="username"></div>
+        <div class="field"><label>Password</label><input type="password" id="auth-password" autocomplete="${state.authMode==='signin'?'current-password':'new-password'}"></div>
+        <button class="btn btn-brass" id="auth-submit" style="width:100%;justify-content:center;" ${state.authBusy?'disabled':''}>
+          ${state.authBusy?'Please wait…':(state.authMode==='signin'?'Sign In':'Create Account')}
+        </button>
+        <div style="text-align:center;margin-top:16px;"><button class="btn btn-ghost btn-sm" id="goto-settings-link">Backend settings</button></div>
+      </div>
+    </div>
+  </div>`;
+}
+function wireAuthEvents(){
+  const gs = document.getElementById('goto-settings') || document.getElementById('goto-settings-link');
+  if(gs) gs.onclick = ()=>{ state.view='settings'; state.authError=''; render(); };
+  const tSignin = document.getElementById('tab-signin'), tSignup = document.getElementById('tab-signup');
+  if(tSignin) tSignin.onclick = ()=>{ state.authMode='signin'; state.authError=''; state.authNotice=''; render(); };
+  if(tSignup) tSignup.onclick = ()=>{ state.authMode='signup'; state.authError=''; state.authNotice=''; render(); };
+  const submit = document.getElementById('auth-submit');
+  if(submit) submit.onclick = handleAuthSubmit;
+  const pwd = document.getElementById('auth-password');
+  if(pwd) pwd.onkeydown = e=>{ if(e.key==='Enter') handleAuthSubmit(); };
+}
+async function handleAuthSubmit(){
+  const emailEl = document.getElementById('auth-email'), pwdEl = document.getElementById('auth-password');
+  const email = emailEl.value.trim(), password = pwdEl.value;
+  if(!email || !password){ state.authError='Enter your email and password.'; render(); return; }
+  if(state.authMode==='signup' && password.length<6){ state.authError='Password must be at least 6 characters.'; render(); return; }
+  state.authBusy=true; state.authError=''; state.authNotice=''; render();
+  try{
+    if(state.authMode==='signup'){
+      const res = await authSignUp(email, password);
+      state.authBusy=false;
+      if(res.loggedIn){ await loadAll(); }
+      else { state.authMode='signin'; state.authNotice='Account created — check your email to confirm, then sign in.'; render(); }
+    } else {
+      await authSignIn(email, password);
+      state.authBusy=false;
+      await loadAll();
+    }
+  }catch(e){
+    state.authBusy=false; state.authError=e.message; render();
+  }
+}
+
+/* =========================================================================
+   SHEETS AUTH SCREEN (Google Sheets login/owner-bootstrap — gates the app
+   when backend='sheets')
+========================================================================= */
+function renderSheetsAuthScreen(){
+  const s = state.settings;
+  if(!s.appsScriptUrl){
+    return `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--paper);">
+      <div class="card" style="max-width:420px;width:100%;">
+        <div class="card-body" style="text-align:center;">
+          <span style="color:var(--brass);">${icon('shield')}</span>
+          <h2 style="margin:12px 0 6px;">Backend not configured yet</h2>
+          <p class="helptext">This CRM is set to use Google Sheets, but no Apps Script Web App URL has been entered. Ask whoever set up this CRM, or configure it yourself.</p>
+          <button class="btn btn-primary" id="goto-settings" style="margin-top:6px;">Go to Settings</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  const isBootstrap = state.sheetsAuthMode==='bootstrap';
+  return `
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--paper);">
+    <div class="card" style="max-width:400px;width:100%;">
+      <div class="card-body">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <span style="color:var(--brass);">${icon('shield')}</span>
+          <b class="font-display" style="font-size:18px;">Policy Register</b>
+        </div>
+        ${state.sheetsAuthError?`<div class="banner" style="background:var(--bad-bg);border-color:#F0CFCB;color:var(--bad);">${icon('warn')}<span>${escapeHtml(state.sheetsAuthError)}</span></div>`:''}
+        ${state.sheetsAuthNotice?`<div class="banner info"><span>${escapeHtml(state.sheetsAuthNotice)}</span></div>`:''}
+
+        ${!isBootstrap?`
+        <div class="field"><label>Username</label><input type="text" id="sheets-username" autocomplete="username"></div>
+        <div class="field"><label>Password</label><input type="password" id="sheets-password" autocomplete="current-password"></div>
+        <button class="btn btn-brass" id="sheets-auth-submit" style="width:100%;justify-content:center;" ${state.sheetsAuthBusy?'disabled':''}>
+          ${state.sheetsAuthBusy?'Please wait…':'Sign In'}
+        </button>
+        <div style="text-align:center;margin-top:16px;display:flex;flex-direction:column;gap:6px;">
+          <button class="btn btn-ghost btn-sm" id="tab-bootstrap">First time? Set up owner account</button>
+          <button class="btn btn-ghost btn-sm" id="goto-settings-link">Backend settings</button>
+        </div>`:`
+        <p class="helptext" style="margin-bottom:14px;">This creates the very first account for this sheet, with full admin access. It only works once — after that, ask your admin for a login.</p>
+        <div class="field"><label>Your Name</label><input type="text" id="sheets-display-name" autocomplete="name"></div>
+        <div class="field"><label>Choose a Username</label><input type="text" id="sheets-username" autocomplete="username"></div>
+        <div class="field"><label>Choose a Password</label><input type="password" id="sheets-password" autocomplete="new-password"><span class="hint">At least 6 characters.</span></div>
+        <button class="btn btn-brass" id="sheets-bootstrap-submit" style="width:100%;justify-content:center;" ${state.sheetsAuthBusy?'disabled':''}>
+          ${state.sheetsAuthBusy?'Please wait…':'Set Up Owner Account'}
+        </button>
+        <div style="text-align:center;margin-top:16px;"><button class="btn btn-ghost btn-sm" id="tab-signin">Back to sign in</button></div>
+        `}
+      </div>
+    </div>
+  </div>`;
+}
+function wireSheetsAuthEvents(){
+  const gs = document.getElementById('goto-settings') || document.getElementById('goto-settings-link');
+  if(gs) gs.onclick = ()=>{ state.view='settings'; state.sheetsAuthError=''; render(); };
+  const tBootstrap = document.getElementById('tab-bootstrap');
+  if(tBootstrap) tBootstrap.onclick = ()=>{ state.sheetsAuthMode='bootstrap'; state.sheetsAuthError=''; state.sheetsAuthNotice=''; render(); };
+  const tSignin = document.getElementById('tab-signin');
+  if(tSignin) tSignin.onclick = ()=>{ state.sheetsAuthMode='signin'; state.sheetsAuthError=''; state.sheetsAuthNotice=''; render(); };
+  const submit = document.getElementById('sheets-auth-submit');
+  if(submit) submit.onclick = handleSheetsAuthSubmit;
+  const bootstrapSubmit = document.getElementById('sheets-bootstrap-submit');
+  if(bootstrapSubmit) bootstrapSubmit.onclick = handleSheetsBootstrapSubmit;
+  const pwd = document.getElementById('sheets-password');
+  if(pwd) pwd.onkeydown = e=>{ if(e.key==='Enter') (state.sheetsAuthMode==='bootstrap'?handleSheetsBootstrapSubmit():handleSheetsAuthSubmit)(); };
+}
+async function handleSheetsAuthSubmit(){
+  const username = document.getElementById('sheets-username').value.trim();
+  const password = document.getElementById('sheets-password').value;
+  if(!username || !password){ state.sheetsAuthError='Enter your username and password.'; render(); return; }
+  state.sheetsAuthBusy=true; state.sheetsAuthError=''; state.sheetsAuthNotice=''; render();
+  try{
+    await sheetsLogin(username, password);
+    state.sheetsAuthBusy=false;
+    await loadAll();
+  }catch(e){
+    state.sheetsAuthBusy=false; state.sheetsAuthError=e.message; render();
+  }
+}
+async function handleSheetsBootstrapSubmit(){
+  const username = document.getElementById('sheets-username').value.trim();
+  const password = document.getElementById('sheets-password').value;
+  const displayName = document.getElementById('sheets-display-name').value.trim();
+  if(!username || !password){ state.sheetsAuthError='Enter a username and password.'; render(); return; }
+  if(password.length<6){ state.sheetsAuthError='Password must be at least 6 characters.'; render(); return; }
+  state.sheetsAuthBusy=true; state.sheetsAuthError=''; state.sheetsAuthNotice=''; render();
+  try{
+    await sheetsBootstrapAdmin(username, password, displayName);
+    state.sheetsAuthBusy=false;
+    await loadAll();
+  }catch(e){
+    state.sheetsAuthBusy=false; state.sheetsAuthError=e.message; render();
+  }
+}
+
+function renderModal(){
+  const wrap = document.createElement('div');
+  const m = state.modal;
+  if(!m){ const existing=document.getElementById('modal-root'); if(existing) existing.remove(); return; }
+  let inner = '';
+  if(m.type==='policy') inner = policyFormModal(m.policy);
+  if(m.type==='renew') inner = renewModal(m);
+  if(m.type==='lead') inner = leadFormModal(m);
+  if(m.type==='reminder') inner = reminderModal(m.policy);
+  if(m.type==='bulkReminder') inner = bulkReminderModal();
+  if(m.type==='confirm') inner = confirmModal(m);
+  wrap.id='modal-root';
+  wrap.innerHTML = inner;
+  document.body.appendChild(wrap);
+  wireModalEvents();
+}
+
+function policyFormModal(p){
+  const isNew = !p.id;
+  const isConverting = !!state.convertingLeadId;
+  const isSheetsAdmin = state.settings.backend==='sheets' && state.sheetsSession && state.sheetsSession.role==='admin';
+  p = Object.assign({customer_name:'',email:'',mobile:'',policy_number:'',policy_type:'',company_name:'',product_name:'',vehicle_number:'',issue_date:'',renewal_date:'',policy_period:'1 Year',premium_amount:'',sum_insured:'',payment_frequency:'',status:'Active',notes:'',advisor_username: isSheetsAdmin ? state.sheetsSession.username : ''}, p);
+  const companies = getAllCompanyNames();
+  const showVehicle = isMotorPolicyType(p.policy_type);
+  return `
+  <div class="overlay" id="modal-overlay">
+    <div class="modal wide">
+      <div class="modal-head"><h3>${isConverting?'Convert Lead to Policy':(isNew?'Add Policy':'Edit Policy')}</h3><button class="close-x" id="modal-close">${icon('x')}</button></div>
+      ${isConverting?`<div style="padding:0 22px;"><div class="banner info" style="margin-top:16px;margin-bottom:0;">${icon('warn')}<span>Fill in the remaining policy details below to complete this conversion.</span></div></div>`:''}<div class="modal-body">
+        <form id="policy-form">
+        <div class="section-title" style="margin-top:0;">Customer</div>
+        <div class="form-grid">
+          <div class="field"><label>Full Name *</label><input type="text" name="customer_name" required value="${escapeHtml(p.customer_name)}"></div>
+          <div class="field"><label>Mobile Number *</label><input type="tel" name="mobile" required value="${escapeHtml(p.mobile)}"></div>
+          <div class="field full"><label>Email *</label><input type="email" name="email" required value="${escapeHtml(p.email)}"></div>
+        </div>
+        <div class="section-title">Policy Details</div>
+        <div class="form-grid">
+          <div class="field"><label>Policy Number *</label><input type="text" name="policy_number" required value="${escapeHtml(p.policy_number)}"></div>
+          <div class="field"><label>Policy Type *</label>
+            <select name="policy_type" id="pf-policy-type" required><option value="">Select…</option>${POLICY_TYPES.map(t=>`<option ${p.policy_type===t?'selected':''}>${t}</option>`).join('')}</select>
+          </div>
+          <div class="field"><label>Product Name</label><input type="text" name="product_name" placeholder="e.g. Optima Secure, Health Companion…" value="${escapeHtml(p.product_name)}"></div>
+          <div class="field" id="pf-vehicle-wrap" style="${showVehicle?'':'display:none;'}"><label>Vehicle Number</label><input type="text" name="vehicle_number" placeholder="e.g. TS09AB1234" value="${escapeHtml(p.vehicle_number)}"></div>
+          <div class="field"><label>Insurance Company *</label>
+            <select name="company_name" required><option value="">Select…</option>${companies.map(c=>`<option ${p.company_name===c?'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
+            <span class="hint">Manage the list from the Companies tab.</span>
+          </div>
+          <div class="field"><label>Status</label>
+            <select name="status">${POLICY_STATUSES.map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join('')}</select>
+          </div>
+          ${isSheetsAdmin?`
+          <div class="field"><label>Advisor</label>
+            <select name="advisor_username">${state.sheetsUsers.map(u=>`<option value="${escapeHtml(u.username)}" ${p.advisor_username===u.username?'selected':''}>${escapeHtml(u.display_name)} (${escapeHtml(u.username)})</option>`).join('')}</select>
+            <span class="hint">Which advisor this policy belongs to.</span>
+          </div>`:''}
+          <div class="field"><label>Issue Date *</label><input type="date" name="issue_date" id="pf-issue-date" required value="${p.issue_date}"></div>
+          <div class="field"><label>Policy Period</label>
+            <select name="policy_period" id="pf-policy-period">${POLICY_PERIODS.map(period=>`<option ${p.policy_period===period?'selected':''}>${period}</option>`).join('')}</select>
+          </div>
+          <div class="field"><label>Renewal Date *</label><input type="date" name="renewal_date" id="pf-renewal-date" required value="${p.renewal_date}">
+            <span class="hint">Auto-filled from Issue Date + Policy Period — adjust manually if needed. Renewal month-year is tracked automatically from this date.</span></div>
+          <div class="field"><label>Premium Amount (₹)</label><input type="number" step="0.01" name="premium_amount" value="${p.premium_amount}"></div>
+          <div class="field"><label>Sum Insured / Cover (₹)</label><input type="number" step="0.01" name="sum_insured" value="${p.sum_insured}"></div>
+          <div class="field"><label>Payment Frequency</label>
+            <select name="payment_frequency"><option value="">Select…</option>${PAYMENT_FREQUENCIES.map(f=>`<option ${p.payment_frequency===f?'selected':''}>${f}</option>`).join('')}</select>
+          </div>
+        </div>
+        <div class="field full"><label>Notes</label><textarea name="notes" rows="3" placeholder="Anything else worth remembering about this customer or policy…">${escapeHtml(p.notes)}</textarea></div>
+        </form>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+        <button class="btn btn-brass" id="modal-save">${isNew?'Add Policy':'Save Changes'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function wirePolicyFormDynamics(){
+  const typeEl = document.getElementById('pf-policy-type');
+  const vehicleWrap = document.getElementById('pf-vehicle-wrap');
+  const issueEl = document.getElementById('pf-issue-date');
+  const periodEl = document.getElementById('pf-policy-period');
+  const renewalEl = document.getElementById('pf-renewal-date');
+  if(!typeEl || !issueEl || !periodEl || !renewalEl) return;
+
+  const recalcRenewal = ()=>{
+    if(!issueEl.value) return;
+    renewalEl.value = computeRenewalDate(issueEl.value, yearsFromPeriod(periodEl.value));
+  };
+  typeEl.onchange = ()=>{
+    if(vehicleWrap) vehicleWrap.style.display = isMotorPolicyType(typeEl.value) ? '' : 'none';
+  };
+  issueEl.onchange = recalcRenewal;
+  periodEl.onchange = recalcRenewal;
+}
+
+function renewModal(m){
+  const p = m.policy;
+  return `
+  <div class="overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-head"><h3>Mark as Renewed</h3><button class="close-x" id="modal-close">${icon('x')}</button></div>
+      <div class="modal-body">
+        <p class="helptext">Renewing <b style="color:var(--ink)">${escapeHtml(p.customer_name)}</b>'s ${escapeHtml(p.policy_type)} policy (<span class="mono">${escapeHtml(p.policy_number)}</span>) with ${escapeHtml(p.company_name)}.</p>
+        <div class="field" style="margin-top:14px;"><label>New Issue Date</label><input type="date" id="renew-issue-date" value="${m.newIssueDate}"></div>
+        <div class="field"><label>New Renewal Date</label><input type="date" id="renew-renewal-date" value="${m.newRenewalDate}"></div>
+        <span class="hint">Defaulted to one year forward — adjust if the new term is different (e.g. a 6-month policy).</span>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+        <button class="btn btn-brass" id="modal-confirm-renew" data-id="${p.id}">Confirm Renewal</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function reminderModal(p){
+  const s = state.settings;
+  const subject = resolveTemplate(s.template.subject, p);
+  const body = resolveTemplate(s.template.body, p);
+  return `
+  <div class="overlay" id="modal-overlay">
+    <div class="modal wide">
+      <div class="modal-head"><h3>Send Renewal Reminder</h3><button class="close-x" id="modal-close">${icon('x')}</button></div>
+      <div class="modal-body">
+        <p class="helptext">To: <b style="color:var(--ink)">${escapeHtml(p.customer_name)} &lt;${escapeHtml(p.email)}&gt;</b></p>
+        ${s.backend==='local'?`<div class="banner" style="margin-top:12px;">${icon('warn')} Demo mode — this won't actually send. Connect a backend in Settings to send real emails.</div>`:''}
+        <div class="field"><label>Subject</label><input type="text" id="remind-subject" value="${escapeHtml(subject)}"></div>
+        <div class="field"><label>Body</label><textarea id="remind-body" rows="11">${escapeHtml(body)}</textarea></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+        <button class="btn btn-brass" id="modal-send-reminder" data-id="${p.id}">${icon('mail')} Send Reminder</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function bulkReminderModal(){
+  const ids = [...state.selectedRenewalIds];
+  const policies = state.policies.filter(p=>ids.includes(p.id));
+  const s = state.settings;
+  return `
+  <div class="overlay" id="modal-overlay">
+    <div class="modal wide">
+      <div class="modal-head"><h3>Send Reminders to ${policies.length} Customer${policies.length===1?'':'s'}</h3><button class="close-x" id="modal-close">${icon('x')}</button></div>
+      <div class="modal-body">
+        ${s.backend==='local'?`<div class="banner">${icon('warn')} Demo mode — these won't actually send.</div>`:''}
+        <p class="helptext">Each customer receives the reminder template below, personalized with their own policy details.</p>
+        <div class="field"><label>Subject</label><input type="text" id="bulk-subject" value="${escapeHtml(s.template.subject)}"></div>
+        <div class="field"><label>Body</label><textarea id="bulk-body" rows="9">${escapeHtml(s.template.body)}</textarea></div>
+        <div class="section-title">Recipients</div>
+        <div style="max-height:160px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;">
+          ${policies.map(p=>`<div style="padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px;">${escapeHtml(p.customer_name)} <span class="cell-sub">${escapeHtml(p.email)}</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+        <button class="btn btn-brass" id="modal-send-bulk">${icon('mail')} Send to All</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function confirmModal(m){
+  return `
+  <div class="overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-head"><h3>${escapeHtml(m.title)}</h3><button class="close-x" id="modal-close">${icon('x')}</button></div>
+      <div class="modal-body">
+        <p class="helptext">${escapeHtml(m.message)}</p>
+        ${m.promptField?`<div class="field" style="margin-top:12px;margin-bottom:0;"><input type="password" id="confirm-prompt-input" placeholder="New password"></div>`:''}
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" id="modal-cancel">Cancel</button>
+        <button class="btn btn-danger" id="modal-confirm-yes" style="background:var(--bad);color:#fff;">${escapeHtml(m.confirmLabel||'Confirm')}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* =========================================================================
+   EVENT WIRING
+========================================================================= */
+function wireContentEvents(){
+  if(state.view==='dashboard'){
+    document.querySelectorAll('[data-goto]').forEach(el=>el.onclick=()=>{state.view=el.dataset.goto;render();});
+    document.querySelectorAll('[data-remind]').forEach(el=>el.onclick=()=>openReminderModal(el.dataset.remind));
+    const db = document.getElementById('dismiss-banner');
+    if(db) db.onclick = ()=>{ state.settings.bannerDismissed=true; saveSettings(); render(); };
+  }
+  else if(state.view==='renewals'){
+    document.getElementById('renewal-search').oninput = debounce(e=>{state.filters.renewalSearch=e.target.value; renderContent();},250);
+    document.querySelectorAll('[data-renewal-filter]').forEach(el=>el.onclick=()=>{
+      state.filters.renewal = el.dataset.renewalFilter; render();
+    });
+    const mp = document.getElementById('renewal-month-picker');
+    if(mp) mp.onchange = e=>{ state.filters.renewalMonth = e.target.value; renderContent(); };
+    const rf = document.getElementById('renewal-from'), rt = document.getElementById('renewal-to');
+    if(rf) rf.onchange = e=>{ state.filters.renewalFrom = e.target.value; renderContent(); };
+    if(rt) rt.onchange = e=>{ state.filters.renewalTo = e.target.value; renderContent(); };
+    const selAll = document.getElementById('select-all-renewals');
+    if(selAll) selAll.onchange = e=>{
+      const list = getFilteredRenewals();
+      if(e.target.checked) list.forEach(p=>state.selectedRenewalIds.add(p.id));
+      else list.forEach(p=>state.selectedRenewalIds.delete(p.id));
+      render();
+    };
+    document.querySelectorAll('.renewal-check').forEach(el=>el.onchange=()=>{
+      if(el.checked) state.selectedRenewalIds.add(el.dataset.id); else state.selectedRenewalIds.delete(el.dataset.id);
+      render();
+    });
+    document.querySelectorAll('[data-remind]').forEach(el=>el.onclick=()=>openReminderModal(el.dataset.remind));
+    document.querySelectorAll('[data-renew]').forEach(el=>el.onclick=()=>openRenewModal(el.dataset.renew));
+    document.querySelectorAll('[data-edit]').forEach(el=>el.onclick=()=>openPolicyModal(state.policies.find(p=>p.id===el.dataset.edit)));
+    const bulkBtn = document.getElementById('btn-bulk-remind');
+    if(bulkBtn) bulkBtn.onclick = ()=>{ state.modal={type:'bulkReminder'}; renderModal(); };
+  }
+  else if(state.view==='policies'){
+    document.getElementById('pol-search').oninput = debounce(e=>{state.filters.polSearch=e.target.value; refreshPoliciesResults();},150);
+    document.getElementById('pol-company').onchange = e=>{state.filters.polCompany=e.target.value; refreshPoliciesResults();};
+    document.getElementById('pol-type').onchange = e=>{state.filters.polType=e.target.value; refreshPoliciesResults();};
+    document.getElementById('pol-status').onchange = e=>{state.filters.polStatus=e.target.value; refreshPoliciesResults();};
+    document.getElementById('pol-sort').onchange = e=>{state.filters.polSort=e.target.value; refreshPoliciesResults();};
+    document.getElementById('btn-export-csv').onclick = exportCsv;
+    wirePoliciesResultEvents();
+  }
+  else if(state.view==='leads'){
+    const leadSearchEl = document.getElementById('lead-search');
+    if(leadSearchEl) leadSearchEl.oninput = debounce(e=>{state.filters.leadSearch=e.target.value; refreshLeadsBoard();},150);
+    const assigneeEl = document.getElementById('lead-assignee-filter');
+    if(assigneeEl) assigneeEl.onchange = e=>{ state.filters.leadAssignee=e.target.value; refreshLeadsBoard(); };
+    wireLeadsBoardEvents();
+  }
+  else if(state.view==='companies'){
+    document.getElementById('btn-add-company').onclick = addCompanyHandler;
+    document.getElementById('new-company-name').onkeydown = e=>{ if(e.key==='Enter'){ e.preventDefault(); addCompanyHandler(); } };
+    document.querySelectorAll('[data-delete-company]').forEach(el=>el.onclick=()=>deleteCompanyHandler(el.dataset.deleteCompany));
+  }
+  else if(state.view==='settings'){
+    document.querySelectorAll('input[name=backend]').forEach(el=>el.onchange=()=>{ state.settings.backend=el.value; renderContent(); });
+    const saveBackendBtn = document.getElementById('btn-save-backend');
+    if(saveBackendBtn) saveBackendBtn.onclick = saveBackendSettings;
+    const testBtn = document.getElementById('btn-test-connection');
+    if(testBtn) testBtn.onclick = testConnectionHandler;
+    const settingsLogoutBtn = document.getElementById('btn-settings-logout');
+    if(settingsLogoutBtn) settingsLogoutBtn.onclick = async ()=>{ await authSignOut(); render(); };
+    const settingsSheetsLogoutBtn = document.getElementById('btn-settings-sheets-logout');
+    if(settingsSheetsLogoutBtn) settingsSheetsLogoutBtn.onclick = async ()=>{ await sheetsLogout(); render(); };
+    const addAdvisorBtn = document.getElementById('btn-add-advisor');
+    if(addAdvisorBtn) addAdvisorBtn.onclick = addAdvisorHandler;
+    document.querySelectorAll('[data-toggle-active]').forEach(el=>el.onclick=()=>{
+      toggleAdvisorActiveHandler(el.dataset.toggleActive, el.dataset.active==='true');
+    });
+    document.querySelectorAll('[data-reset-pwd]').forEach(el=>el.onclick=()=>{
+      promptResetAdvisorPassword(el.dataset.resetPwd);
+    });
+    const addStatusBtn = document.getElementById('btn-add-status');
+    if(addStatusBtn) addStatusBtn.onclick = addLeadStatusHandler;
+    document.querySelectorAll('[data-move-status-up]').forEach(el=>el.onclick=()=>moveLeadStatus(el.dataset.moveStatusUp,-1));
+    document.querySelectorAll('[data-move-status-down]').forEach(el=>el.onclick=()=>moveLeadStatus(el.dataset.moveStatusDown,1));
+    document.querySelectorAll('[data-delete-status]').forEach(el=>el.onclick=()=>deleteLeadStatusHandler(el.dataset.deleteStatus));
+    const backupNowBtn = document.getElementById('btn-backup-now');
+    if(backupNowBtn) backupNowBtn.onclick = createBackupNowHandler;
+    const saveEmailBtn = document.getElementById('btn-save-email');
+    if(saveEmailBtn) saveEmailBtn.onclick = ()=>{
+      state.settings.emailjsServiceId = document.getElementById('emailjs-service').value.trim();
+      state.settings.emailjsTemplateId = document.getElementById('emailjs-template').value.trim();
+      state.settings.emailjsPublicKey = document.getElementById('emailjs-key').value.trim();
+      saveSettings(); showToast('Email settings saved','ok');
+    };
+    document.getElementById('btn-save-template').onclick = ()=>{
+      state.settings.template.subject = document.getElementById('tpl-subject').value;
+      state.settings.template.body = document.getElementById('tpl-body').value;
+      saveSettings(); showToast('Template saved','ok');
+    };
+    document.getElementById('btn-reset-template').onclick = ()=>{
+      state.settings.template = Object.assign({}, DEFAULT_TEMPLATE); saveSettings(); renderContent(); showToast('Template reset to default','ok');
+    };
+  }
+}
+
+function wireModalEvents(){
+  const overlay = document.getElementById('modal-overlay');
+  const close = ()=>{
+    if(state.modal && state.modal.type==='policy'){ state.convertingLeadId=null; state.convertingLeadNewStatus=null; }
+    state.modal=null; renderModal();
+  };
+  document.getElementById('modal-close').onclick = close;
+  const cancel = document.getElementById('modal-cancel'); if(cancel) cancel.onclick = close;
+  overlay.addEventListener('mousedown', e=>{ if(e.target===overlay) close(); });
+
+  const saveBtn = document.getElementById('modal-save');
+  if(saveBtn) saveBtn.onclick = savePolicyFromForm;
+  if(saveBtn) wirePolicyFormDynamics();
+
+  const saveLeadBtn = document.getElementById('modal-save-lead');
+  if(saveLeadBtn) saveLeadBtn.onclick = saveLeadFromForm;
+
+  const sendBtn = document.getElementById('modal-send-reminder');
+  if(sendBtn) sendBtn.onclick = ()=>doSendReminder(sendBtn.dataset.id);
+
+  const confirmRenewBtn = document.getElementById('modal-confirm-renew');
+  if(confirmRenewBtn) confirmRenewBtn.onclick = ()=>doConfirmRenew(confirmRenewBtn.dataset.id);
+
+  const sendBulkBtn = document.getElementById('modal-send-bulk');
+  if(sendBulkBtn) sendBulkBtn.onclick = doSendBulkReminders;
+
+  const confirmYes = document.getElementById('modal-confirm-yes');
+  if(confirmYes) confirmYes.onclick = ()=>{
+    const action = state.modal.onConfirm;
+    const promptInput = document.getElementById('confirm-prompt-input');
+    const promptValue = promptInput ? promptInput.value : undefined;
+    state.modal=null; renderModal(); if(action) action(promptValue);
+  };
+}
+
+/* =========================================================================
+   ACTIONS
+========================================================================= */
+function openPolicyModal(p){ state.editingPolicy = p; state.modal = {type:'policy', policy: p||{}}; renderModal(); }
+function openReminderModal(id){ const p = state.policies.find(x=>x.id===id); if(!p) return; state.modal={type:'reminder', policy:p}; renderModal(); }
+
+async function savePolicyFromForm(){
+  const form = document.getElementById('policy-form');
+  const fd = new FormData(form);
+  const payload = {};
+  fd.forEach((v,k)=>payload[k]=v);
+  const required = ['customer_name','email','mobile','policy_number','policy_type','company_name','issue_date','renewal_date'];
+  for(const r of required){ if(!payload[r]){ showToast('Please fill in all required fields', 'err'); return; } }
+  const saveBtn = document.getElementById('modal-save');
+  saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+  try{
+    const provider = getProvider();
+    let createdPolicy = null;
+    if(state.editingPolicy && state.editingPolicy.id){
+      const updated = await provider.updatePolicy(state.editingPolicy.id, payload);
+      const idx = state.policies.findIndex(p=>p.id===state.editingPolicy.id);
+      state.policies[idx] = normalizePolicy(Object.assign({}, state.policies[idx], updated||payload));
+      showToast('Policy updated', 'ok');
+    } else {
+      createdPolicy = await provider.createPolicy(payload);
+      state.policies.push(normalizePolicy(createdPolicy));
+      showToast(state.convertingLeadId ? 'Lead converted to policy' : 'Policy added', 'ok');
+    }
+    if(state.convertingLeadId && createdPolicy){
+      const leadId = state.convertingLeadId, newStatus = state.convertingLeadNewStatus;
+      try{
+        const updatedLead = await provider.updateLead(leadId, {status:newStatus, closed_policy_id:createdPolicy.id});
+        const lidx = state.leads.findIndex(l=>l.id===leadId);
+        if(lidx>-1) state.leads[lidx] = Object.assign({}, state.leads[lidx], updatedLead||{status:newStatus, closed_policy_id:createdPolicy.id});
+      }catch(e){ /* policy was saved either way; surface separately */ showToast('Policy saved, but could not update the lead: '+e.message, 'err'); }
+    }
+    state.convertingLeadId = null; state.convertingLeadNewStatus = null;
+    state.modal = null; render();
+  }catch(e){
+    showToast('Could not save: '+e.message, 'err');
+    saveBtn.disabled=false; saveBtn.textContent = state.editingPolicy && state.editingPolicy.id ? 'Save Changes':'Add Policy';
+  }
+}
+
+function confirmDeletePolicy(id){
+  const p = state.policies.find(x=>x.id===id); if(!p) return;
+  state.modal = {type:'confirm', title:'Delete Policy', message:`Delete the policy record for ${p.customer_name} (${p.policy_number})? This cannot be undone.`, confirmLabel:'Delete', onConfirm: ()=>deletePolicyNow(id)};
+  renderModal();
+}
+async function deletePolicyNow(id){
+  try{
+    await getProvider().deletePolicy(id);
+    state.policies = state.policies.filter(p=>p.id!==id);
+    state.selectedRenewalIds.delete(id);
+    render(); showToast('Policy deleted','ok');
+  }catch(e){ showToast('Could not delete: '+e.message,'err'); }
+}
+
+function openRenewModal(id){
+  const p = state.policies.find(x=>x.id===id); if(!p) return;
+  const oldRenewal = normalizeDate(p.renewal_date);
+  const newIssue = new Date(oldRenewal+'T00:00:00'); newIssue.setDate(newIssue.getDate()+1);
+  const newIssueStr = newIssue.toISOString().slice(0,10);
+  const years = yearsFromPeriod(p.policy_period);
+  const suggestedRenewal = computeRenewalDate(newIssueStr, years);
+  state.modal = {type:'renew', policy:p, newIssueDate: newIssueStr, newRenewalDate: suggestedRenewal};
+  renderModal();
+}
+async function doConfirmRenew(id){
+  const issueDate = document.getElementById('renew-issue-date').value;
+  const renewalDate = document.getElementById('renew-renewal-date').value;
+  if(!issueDate || !renewalDate){ showToast('Please fill in both dates','err'); return; }
+  const btn = document.getElementById('modal-confirm-renew');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try{
+    const updated = await getProvider().updatePolicy(id, {issue_date: issueDate, renewal_date: renewalDate, status:'Active', last_reminder_sent:''});
+    const idx = state.policies.findIndex(x=>x.id===id);
+    if(idx>-1) state.policies[idx] = normalizePolicy(Object.assign({}, state.policies[idx], updated || {issue_date:issueDate, renewal_date:renewalDate, status:'Active', last_reminder_sent:''}));
+    state.modal = null; render();
+    showToast(`Renewed — next renewal set to ${formatDateDisplay(renewalDate)}`,'ok');
+  }catch(e){
+    showToast('Could not update: '+e.message,'err');
+    btn.disabled=false; btn.textContent='Confirm Renewal';
+  }
+}
+
+async function doSendReminder(id){
+  const p = state.policies.find(x=>x.id===id); if(!p) return;
+  const subject = document.getElementById('remind-subject').value;
+  const body = document.getElementById('remind-body').value;
+  const btn = document.getElementById('modal-send-reminder');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try{
+    await sendReminderEmail(p, subject, body);
+    const today = todayStr();
+    await getProvider().updatePolicy(id, {last_reminder_sent: today});
+    const idx = state.policies.findIndex(x=>x.id===id);
+    state.policies[idx].last_reminder_sent = today;
+    state.modal = null; render();
+    showToast('Reminder sent to '+p.customer_name, 'ok');
+  }catch(e){
+    showToast('Could not send: '+e.message, 'err');
+    btn.disabled=false; btn.innerHTML = icon('mail')+' Send Reminder';
+  }
+}
+
+async function doSendBulkReminders(){
+  const ids = [...state.selectedRenewalIds];
+  const policies = state.policies.filter(p=>ids.includes(p.id));
+  const subjectTpl = document.getElementById('bulk-subject').value;
+  const bodyTpl = document.getElementById('bulk-body').value;
+  const btn = document.getElementById('modal-send-bulk');
+  btn.disabled = true;
+  let sent = 0, failed = 0;
+  for(const p of policies){
+    btn.textContent = `Sending ${sent+failed+1} of ${policies.length}…`;
+    try{
+      await sendReminderEmail(p, resolveTemplate(subjectTpl,p), resolveTemplate(bodyTpl,p));
+      const today = todayStr();
+      await getProvider().updatePolicy(p.id, {last_reminder_sent: today});
+      const idx = state.policies.findIndex(x=>x.id===p.id);
+      if(idx>-1) state.policies[idx].last_reminder_sent = today;
+      sent++;
+    }catch(e){ failed++; }
+  }
+  state.modal = null; state.selectedRenewalIds.clear(); render();
+  showToast(`Sent ${sent} reminder${sent===1?'':'s'}${failed?`, ${failed} failed`:''}`, failed? 'err':'ok');
+}
+
+async function addCompanyHandler(){
+  const input = document.getElementById('new-company-name');
+  const name = input.value.trim();
+  if(!name) return;
+  if(state.companies.some(c=>c.name.toLowerCase()===name.toLowerCase())){ showToast('That company is already in the list','err'); return; }
+  try{
+    const created = await getProvider().addCompany(name);
+    state.companies.push(created); input.value=''; renderContent(); showToast('Company added','ok');
+  }catch(e){ showToast('Could not add: '+e.message,'err'); }
+}
+async function deleteCompanyHandler(id){
+  try{
+    await getProvider().deleteCompany(id);
+    state.companies = state.companies.filter(c=>c.id!==id);
+    renderContent();
+  }catch(e){ showToast('Could not remove: '+e.message,'err'); }
+}
+
+async function saveBackendSettings(){
+  if(state.settings.backend==='supabase'){
+    state.settings.supabaseUrl = document.getElementById('supabase-url').value.trim();
+    state.settings.supabaseKey = document.getElementById('supabase-key').value.trim();
+  } else if(state.settings.backend==='sheets'){
+    state.settings.appsScriptUrl = document.getElementById('apps-script-url').value.trim();
+  }
+  saveSettings();
+  if(state.settings.backend==='supabase' && !state.session){
+    showToast('Backend saved — sign in to load your policies','ok');
+  } else if(state.settings.backend==='sheets' && !state.sheetsSession){
+    showToast('Backend saved — sign in to load your policies','ok');
+  } else {
+    showToast('Backend saved — reloading data…','ok');
+  }
+  await loadAll();
+}
+async function testConnectionHandler(){
+  // capture any unsaved field values first
+  if(state.settings.backend==='supabase'){
+    state.settings.supabaseUrl = document.getElementById('supabase-url').value.trim();
+    state.settings.supabaseKey = document.getElementById('supabase-key').value.trim();
+  } else if(state.settings.backend==='sheets'){
+    state.settings.appsScriptUrl = document.getElementById('apps-script-url').value.trim();
+  }
+  const resEl = document.getElementById('conn-result');
+  resEl.innerHTML = `<span class="helptext">Testing…</span>`;
+  const res = await getProvider().testConnection();
+  resEl.innerHTML = `<span class="badge ${res.ok?'good':'bad'}">${escapeHtml(res.message)}</span>`;
+}
+
+function exportCsv(){
+  const list = getFilteredPolicies();
+  const headers = ['Customer Name','Email','Mobile','Policy Number','Policy Type','Product Name','Vehicle Number','Company','Issue Date','Policy Period','Renewal Date','Premium','Sum Insured','Payment Frequency','Status','Notes'];
+  const rows = list.map(p=>[p.customer_name,p.email,p.mobile,p.policy_number,p.policy_type,p.product_name,p.vehicle_number,p.company_name,p.issue_date,p.policy_period,p.renewal_date,p.premium_amount,p.sum_insured,p.payment_frequency,p.status,p.notes]);
+  const csv = [headers, ...rows].map(r=>r.map(v=>{
+    const s = (v===null||v===undefined)?'':String(v);
+    return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+  }).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'policies-export-'+todayStr()+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* =========================================================================
+   INIT
+========================================================================= */
+render();
+loadAll();
+</script>
+</body>
+</html>
